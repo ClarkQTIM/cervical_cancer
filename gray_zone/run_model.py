@@ -5,6 +5,8 @@ import os
 import pandas as pd
 import torch
 
+# %cd /tunnel/cervical_cancer/gray_zone
+
 from gray_zone.loader import loader, get_unbalanced_loader
 from gray_zone.utils import load_transforms
 from gray_zone.models.model import get_model

@@ -176,11 +176,11 @@ def split_dataset(output_path: str,
 
     # If output_path / "split_df.csv" exists use the already split csv
     if os.path.isfile(split_df_path):
-        df = pd.read_csv(split_df_path).head(200)
+        df = pd.read_csv(split_df_path)
         print(len(df), df.columns)
     # If output_path / "split_df.csv" doesn't exist: split images by patient using the train and test fractions
     else:
-        df = pd.read_csv(metadata_path).head(200)
+        df = pd.read_csv(metadata_path)
         # If images are not already split into val/train/test, split by patient
         if split_colname not in df:
             print('generating splits based on metrics provided')

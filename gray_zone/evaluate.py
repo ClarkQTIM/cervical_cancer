@@ -64,7 +64,7 @@ def evaluate_model(model: torch.nn.Module,
 
     # Join predictions to test metadata for analysis and remove unnamed columns
     df = df.join(pred_df.set_index(image_colname), on=image_colname)
-    df = df.loc[:200, ~df.columns.str.contains('^Unnamed')]
+    df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
 
     # Save results in csv file
     predictions_path = os.path.join(output_path, "predictions" + suffix + ".csv")

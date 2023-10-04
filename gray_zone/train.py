@@ -41,12 +41,18 @@ def train(model: [torch.Tensor],
         step = 0
         for batch_data in tqdm(train_loader):
             step += 1
-
-            inputs, labels = batch_data[0].to(device), batch_data[1].to(device)
+            try:
+                inputs, labels = batch_data[0].to(device), batch_data[1].to(device)
+            except:
+                inputs = batch_data[0]['pixel_values'][0].to(device)
+                labels = batch_data[1].to(device)
 
             optimizer.zero_grad()
             outputs = model(inputs)
-            outputs, labels = modify_label_outputs_for_model_type(model_type, outputs, labels, act, n_class)
+            try:
+                outputs, labels = modify_label_outputs_for_model_type(model_type, outputs['logits'], labels, act, n_class)
+            except:
+                outputs, labels = modify_label_outputs_for_model_type(model_type, outputs, labels, act, n_class)
             loss = loss_function(outputs, labels)
             loss.backward()
             optimizer.step()
@@ -65,19 +71,26 @@ def train(model: [torch.Tensor],
             val_loss = 0
             step = 0
             for val_data in tqdm(val_loader):
-                val_images, val_labels = (
-                    val_data[0].to(device),
-                    val_data[1].to(device),
-                )
+                step += 1
+                try:
+                    val_images, val_labels = (
+                        val_data[0].to(device),
+                        val_data[1].to(device),
+                    )
+                except:
+                    val_images = val_data[0]['pixel_values'][0].to(device)
+                    val_labels = val_data[1].to(device)
 
                 outputs = model(val_images)
-                outputs, val_labels = modify_label_outputs_for_model_type(model_type, outputs, val_labels, act, n_class,
-                                                                          val=True)
+                
+                try:
+                    outputs, val_labels = modify_label_outputs_for_model_type(model_type, outputs['logits'], val_labels, act, n_class)
+                except:
+                    outputs, val_labels = modify_label_outputs_for_model_type(model_type, outputs, val_labels, act, n_class)
 
                 val_loss += loss_function(outputs, val_labels)
                 y_pred = torch.cat([y_pred, outputs], dim=0)
                 y = torch.cat([y, val_labels], dim=0)
-                step += 1
 
             avg_val_loss = val_loss / step
             scheduler.step(val_loss / step)

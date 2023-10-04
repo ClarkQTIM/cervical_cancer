@@ -4,8 +4,11 @@ import json
 import os
 import pandas as pd
 import torch
+import sys
 
 # %cd /tunnel/cervical_cancer/gray_zone
+module_dir = os.path.abspath('/mnt/cervical_cancer/')
+sys.path.append(module_dir)
 
 from gray_zone.loader import loader, get_unbalanced_loader
 from gray_zone.utils import load_transforms
@@ -60,7 +63,9 @@ def _run_model(output_path: str,
     weights = (torch.Tensor(param_dict['weights'])).float() if "weights" in param_dict else None
 
     is_balanced = param_dict['is_weighted_sampling'] or param_dict['is_weighted_loss']
-    train_loader, val_loader, test_loader, val_df, test_df, weights = loader(data_path=data_path,
+    print('Getting dataloaders')
+    train_loader, val_loader, test_loader, val_df, test_df, weights = loader(architecture=param_dict['architecture'],
+                                                                            data_path=data_path,
                                                                              output_path=output_path,
                                                                              train_transforms=train_transforms,
                                                                              val_transforms=val_transforms,
@@ -69,7 +74,7 @@ def _run_model(output_path: str,
                                                                              image_colname=image_colname,
                                                                              split_colname=split_colname,
                                                                              patient_colname=patient_colname,
-                                                                             train_frac=param_dict['train_frac'],
+                                                                             train_frac=param_dict['train_frac'], # Another line which is architecture=param_dict['']
                                                                              test_frac=param_dict['test_frac'],
                                                                              seed=param_dict['seed'],
                                                                              batch_size=param_dict['batch_size'],
@@ -77,9 +82,14 @@ def _run_model(output_path: str,
                                                                              weights=weights)
 
     # Get model
-    img_dim = list(test_loader.dataset.__getitem__(0)[0].size())
-    model, act = get_model(architecture=param_dict['architecture'],
+    try: # For when we are not using the ViTMAE
+        img_dim = list(test_loader.dataset.__getitem__(0)[0].size())
+    except: # For when we are using the ViTMAE
+        img_dim = 0
+    print('Getting model')
+    model, act, feature_extractor = get_model(architecture=param_dict['architecture'], # Chris added feature_extractor
                            model_type=param_dict['model_type'],
+                           chkpt_path = param_dict['chkpt_path'], # Chris added the chkpt_path
                            dropout_rate=param_dict['dropout_rate'],
                            n_class=param_dict['n_class'],
                            device=param_dict['device'],
@@ -92,6 +102,7 @@ def _run_model(output_path: str,
     if not test:
         loss_function = get_loss(param_dict['loss'], param_dict['n_class'], param_dict['foc_gamma'], param_dict['is_weighted_loss'], weights, param_dict['device']) 
         
+        print('Training')
         train(model=model,
               act=act,
               train_loader=train_loader,
@@ -105,11 +116,13 @@ def _run_model(output_path: str,
               n_class=param_dict['n_class'],
               model_type=param_dict['model_type'],
               val_metric=param_dict['val_metric'])
-
-    val_loader = get_unbalanced_loader(val_df, data_path, param_dict['batch_size'], val_transforms,
+        print('Done with training')
+    val_loader = get_unbalanced_loader(feature_extractor, val_df, data_path, param_dict['batch_size'], val_transforms,
                                        label_colname, image_colname)
+    print('Done with loading new val_loader')
     for data_loader, data_df, suffix in zip([test_loader, val_loader], [test_df, val_df], ['', '_validation']):
         if data_loader:
+            print('Evaluating')
             df = evaluate_model(model=model,
                                 loader=data_loader,
                                 output_path=output_path,
@@ -121,6 +134,8 @@ def _run_model(output_path: str,
                                 image_colname=image_colname,
                                 suffix=suffix)
             is_ordinal = param_dict['model_type'] == 'ordinal'
+            print('Done with Evaluating')
+            print('Processing output')
             process_output(output_path, is_ordinal, "predictions" + suffix + ".csv", n_class=param_dict['n_class'])
 
 

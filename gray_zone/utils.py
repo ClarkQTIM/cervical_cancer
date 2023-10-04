@@ -122,11 +122,20 @@ def get_validation_metric(val_metric: str,
                                                 label_binarize(y_true, classes=list(range(n_class)))[:, -1]))) / 2
         else:
             if y_pred.shape[1] > 1:
+                # print(y_pred, y_pred.shape)
+                # print(y_true, y_true.shape)
+                # print(n_class)
+                # print(label_binarize(y_true, classes=list(range(n_class))), label_binarize(y_true, classes=list(range(n_class))).shape)
+                # print(torch.tensor(label_binarize(y_true, classes=list(range(n_class)))[:, 0]))
+                # print(torch.tensor(label_binarize(y_true, classes=list(range(n_class)))[:, -1]))
                 metric_value = (compute_roc_auc(torch.tensor(y_pred[:, 0]),
                                                 torch.tensor(label_binarize(y_true, classes=list(range(n_class)))[:, 0])) +
                                 compute_roc_auc(torch.tensor(y_pred[:, -1]),
                                                 torch.tensor(label_binarize(y_true, classes=list(range(n_class)))[:,
                                                              -1]))) / 2
+                # print('Here!')
+                # metric_value = (compute_roc_auc(torch.tensor(y_pred),
+                #                                 torch.tensor(label_binarize(y_true, classes=list(range(n_class)))))) 
             else:
                 # print('Entered the binary (1) version of custom_cervix')
                 metric_value = compute_roc_auc(torch.tensor(y_pred), torch.tensor(y_true))

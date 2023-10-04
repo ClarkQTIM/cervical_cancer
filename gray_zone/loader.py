@@ -1,4 +1,5 @@
 import os
+import sys
 import pandas as pd
 import json
 import math
@@ -7,14 +8,25 @@ import torch
 import matplotlib.image as mpimg
 from monai.transforms import Compose
 from sklearn.model_selection import train_test_split
+from transformers import ViTFeatureExtractor
+
+def transform_dataset(dataset, transformation): # Chris added
+
+    print(dataset)
+
+    prepared_ds = dataset.with_transform(transformation)
+
+    return prepared_ds
 
 class Dataset(torch.utils.data.Dataset):
     def __init__(self,
+                feature_extractor, # Chris added
                  df: pd.DataFrame,
                  data_path: str,
                  transforms: Compose,
-                 label_colname: str = 'label',
-                 image_colname: str = 'image'):
+                 label_colname: str,
+                 image_colname: str):
+        self.feature_extractor = feature_extractor # Chris added
         self.df = df
         self.data_path = data_path
         self.transforms = transforms
@@ -40,21 +52,33 @@ class Dataset(torch.utils.data.Dataset):
             
             # Use provided bounding box if available. The bounding box coordinates should be stored in columns named
             # y1, y2, x1, x2.
+
+            '''
+            10/4: I am not sure if this is going to work. Currently trying without bounding boxes, but when we have them, we should revisit this 
+            section
+            '''
             if 'y1' in self.df:
                 idx_data = self.df.iloc[index]
                 img = img[int(idx_data['y1']): int(idx_data['y2']), int(idx_data['x1']): int(idx_data['x2']), :]
                 # Remove center crop if the bounding box is provided
-                self.transforms = Compose([tr for tr in list(self.transforms.transforms)
+                if self.feature_extractor:
+                    self.transforms = self.feature_extractor
+                else:
+                    self.transforms = Compose([tr for tr in list(self.transforms.transforms)
                                            if 'CenterSpatialCrop' not in str(tr)])
-        
+            if self.feature_extractor:
+                self.transforms = self.feature_extractor
+
         gt = self.df[self.label_name].iloc[index]
+
         # Image, label, image filename
         return self.transforms(img), \
                torch.as_tensor(int(gt)) if not math.isnan(gt) else gt, \
                self.df[self.image_name].iloc[index]
 
 
-def loader(data_path: str,
+def loader(architecture: str, # Chris added
+           data_path: str,
            output_path: str,
            train_transforms: Compose,
            val_transforms: Compose,
@@ -69,6 +93,7 @@ def loader(data_path: str,
            image_colname: str = 'image',
            split_colname: str = 'dataset',
            patient_colname: str = 'patient'):
+            # Add an input that referneces the architecture params so I can get the feature extractor from vit-mae
     """
     Inspired by https://github.com/Project-MONAI/tutorials/blob/master/2d_classification/mednist_tutorial.ipynb
 
@@ -76,37 +101,50 @@ def loader(data_path: str,
         DataLoader, DataLoader, DataLoader, pd.Dataframe: train dataset, validation dataset, val dataset, test dataset,
          test df
     """
+
+    # Load in feature extractor if using a pretrained ViTMAE. Chris added
+    feature_extractor = None
+    if 'mae' in architecture: 
+        print('We are using a pre-made feature extractor!')
+        feature_extractor = ViTFeatureExtractor.from_pretrained(architecture)
+
     # Load metadata and create val/train/test split if not already done
     split_df = split_dataset(output_path, train_frac=train_frac, test_frac=test_frac,
                              seed=seed, metadata_path=metadata_path, split_colname=split_colname, image_colname=image_colname,
                              patient_colname=patient_colname) # added image_colname on 08/21/2022, remove for DC
     train_loader, val_loader, test_loader = None, None, None
+
+    # Training loader
     df_train = split_df[split_df[split_colname] == "train"]
     if len(df_train):
         if balanced:
             sampler, weights = get_balanced_sampler(df_train, label_colname, weights)
         shuffle = not balanced
-        train_ds = Dataset(df_train, data_path, train_transforms, label_colname, image_colname)
+
+        train_ds = Dataset(feature_extractor, df_train, data_path, train_transforms, label_colname, image_colname)
         train_loader = torch.utils.data.DataLoader(
             train_ds, batch_size=batch_size, shuffle=shuffle, num_workers=10, sampler=sampler if balanced else None)
-
+        
+    # Val loader
     df_val = split_df[split_df[split_colname] == "val"]
     if len(df_val):
         if balanced:
             sampler, _ = get_balanced_sampler(df_val, label_colname, weights)
-        val_ds = Dataset(df_val, data_path, val_transforms, label_colname, image_colname)
+        val_ds = Dataset(feature_extractor, df_val, data_path, val_transforms, label_colname, image_colname)
         val_loader = torch.utils.data.DataLoader(
             val_ds, batch_size=batch_size, num_workers=10, sampler=sampler if balanced else None)
-
+            
+    # Test loader
     df_test = split_df[split_df[split_colname] == "test"]
     if len(df_test):
-        test_ds = Dataset(df_test, data_path, val_transforms, label_colname, image_colname)
+
+        test_ds = Dataset(feature_extractor, df_test, data_path, val_transforms, label_colname, image_colname)
         test_loader = torch.utils.data.DataLoader(test_ds, batch_size=batch_size, num_workers=10)
+
     return train_loader, val_loader, test_loader, df_val, df_test, weights
 
-
-def get_unbalanced_loader(df, data_path, batch_size, transforms, label_colname, image_colname):
-    ds = Dataset(df, data_path, transforms, label_colname, image_colname)
+def get_unbalanced_loader(feature_extractor, df, data_path, batch_size, transforms, label_colname, image_colname):
+    ds = Dataset(feature_extractor, df, data_path, transforms, label_colname, image_colname)
     return torch.utils.data.DataLoader(ds, batch_size=batch_size, num_workers=10, sampler=None)
 
 
@@ -138,10 +176,11 @@ def split_dataset(output_path: str,
 
     # If output_path / "split_df.csv" exists use the already split csv
     if os.path.isfile(split_df_path):
-        df = pd.read_csv(split_df_path)
+        df = pd.read_csv(split_df_path).head(200)
+        print(len(df), df.columns)
     # If output_path / "split_df.csv" doesn't exist: split images by patient using the train and test fractions
     else:
-        df = pd.read_csv(metadata_path)
+        df = pd.read_csv(metadata_path).head(200)
         # If images are not already split into val/train/test, split by patient
         if split_colname not in df:
             print('generating splits based on metrics provided')

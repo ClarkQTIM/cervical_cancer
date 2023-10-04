@@ -30,12 +30,16 @@ def evaluate_model(model: torch.nn.Module,
 
     with torch.no_grad():
         for batch_idx, test_data in enumerate(tqdm(loader)):
-            test_images, test_labels = (
-                test_data[0].to(device),
-                test_data[1].to(device),
-            )
+            try:
+                test_images, test_labels = (
+                    test_data[0].to(device),
+                    test_data[1].to(device),
+                )
+            except:
+                    test_images = test_data[0]['pixel_values'][0].to(device)
+                    test_labels = test_data[1].to(device)
 
-            pred_prob = act(model(test_images)).detach().cpu().numpy().tolist()
+            pred_prob = act(model(test_images)['logits']).detach().cpu().numpy().tolist()
             test_labels = test_labels.detach().cpu().numpy()
 
             for i in range(len(pred_prob)):
@@ -60,7 +64,7 @@ def evaluate_model(model: torch.nn.Module,
 
     # Join predictions to test metadata for analysis and remove unnamed columns
     df = df.join(pred_df.set_index(image_colname), on=image_colname)
-    df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
+    df = df.loc[:200, ~df.columns.str.contains('^Unnamed')]
 
     # Save results in csv file
     predictions_path = os.path.join(output_path, "predictions" + suffix + ".csv")
@@ -85,7 +89,10 @@ def monte_carlo_it(model: torch.nn.Module,
                 m.train()
 
         for mc_it in range(n_it):
-            pred = act(model(input_data))
+            try:
+                pred = act(model(input_data))
+            except:
+                pred = act(model(input_data)['logits'])
             pred_lst.append(pred.detach().cpu().numpy().tolist())
 
     return pred_lst

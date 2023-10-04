@@ -28,7 +28,10 @@ def proba_to_label(probas):
 def process_output(folder_path, is_ordinal, pred_file, n_class):
     df = pd.read_csv(os.path.join(folder_path, pred_file))
     # Remove unnamed columns
-    df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
+    df = df.loc[:200, ~df.columns.str.contains('^Unnamed')]
+    # print(df['pred'])
+    # for p in df['pred']:
+    #     print(np.array(eval(p)))
     pred = np.array([eval(p) for p in df['pred']])
 
     # Generate MC column results

@@ -6,7 +6,7 @@ import math
 import numpy as np
 import torch
 import matplotlib.image as mpimg
-from monai.transforms import Compose
+from monai.transforms import Compose, NormalizeIntensity, ScaleIntensity, Resize
 from sklearn.model_selection import train_test_split
 from transformers import ViTFeatureExtractor
 
@@ -17,6 +17,24 @@ def transform_dataset(dataset, transformation): # Chris added
     prepared_ds = dataset.with_transform(transformation)
 
     return prepared_ds
+
+def modify_transforms_feat_extractor(transforms, feat_extractor):
+
+    image_mean, image_std = feat_extractor.image_mean, feat_extractor.image_std
+    size = feat_extractor.size["height"]
+    normalize = NormalizeIntensity(subtrahend=image_mean, divisor=image_std, channel_wise=True)
+    resize = Resize(spatial_size=(size, size))
+
+    updated_transforms = []
+    for transform in transforms.transforms:
+        if isinstance(transform, Resize):
+            updated_transforms.append(resize)
+        elif isinstance(transform, ScaleIntensity):
+            updated_transforms.append(normalize)
+        else:
+            updated_transforms.append(transform)
+
+    return Compose(updated_transforms)
 
 class Dataset(torch.utils.data.Dataset):
     def __init__(self,
@@ -32,8 +50,6 @@ class Dataset(torch.utils.data.Dataset):
         self.transforms = transforms
         self.label_name = label_colname
         self.image_name = image_colname
-        print('Transforms in the data loader:', self.transforms)
-        sys.exit()
 
     def __len__(self):
         return len(self.df)
@@ -54,23 +70,24 @@ class Dataset(torch.utils.data.Dataset):
             
             # Use provided bounding box if available. The bounding box coordinates should be stored in columns named
             # y1, y2, x1, x2.
-
-            '''
-            10/4: I am not sure if this is going to work. Currently trying without bounding boxes, but when we have them, we should revisit this 
-            section
-            '''
             if 'y1' in self.df:
                 idx_data = self.df.iloc[index]
                 img = img[int(idx_data['y1']): int(idx_data['y2']), int(idx_data['x1']): int(idx_data['x2']), :]
-                # Remove center crop if the bounding box is provided
-                if self.feature_extractor:
-                    self.transforms = self.feature_extractor
-                else:
+
+                if self.feature_extractor: # If we have a feature extractor, we are going to change the transforms
+                    self.transforms = modify_transforms_feat_extractor(self.transforms, self.feature_extractor)
+                    # Remove center crop if the bounding box is provided
                     self.transforms = Compose([tr for tr in list(self.transforms.transforms)
                                            if 'CenterSpatialCrop' not in str(tr)])
-            if self.feature_extractor:
-                self.transforms = self.feature_extractor
+                else: # No feature extractor
+                    # Remove center crop if the bounding box is provided
+                    self.transforms = Compose([tr for tr in list(self.transforms.transforms)
+                    if 'CenterSpatialCrop' not in str(tr)])
 
+            else: # No bounding box
+                if self.feature_extractor: # If we have a feature extractor, we are going to change the transforms
+                    self.transforms = modify_transforms_feat_extractor(self.transforms, self.feature_extractor)
+                
         gt = self.df[self.label_name].iloc[index]
 
         # Image, label, image filename

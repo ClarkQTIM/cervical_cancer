@@ -45,7 +45,8 @@ full_dataset_training_vitmae_huge_unfinetuned -> 'facebook/vit-mae-huge' finetun
 full_dataset_training_vitmae_huge_unfinetuned_NHS -> 'facebook/vit-mae-huge' finetuned on ImageNet and classification trained on only NHS
 full_dataset_training_vitmae_huge_unfinetuned_ALTS -> 'facebook/vit-mae-huge' finetuned on ImageNet and classification trained on only ALTS
 
-We also have the following inference directories specifically for 'test2'. Note that these are not trained, just inference on 'test2'.
+We also have the following inference directories specifically for 'test2'. Note that these are not trained, just inference on 'test2'. 
+So, we are NOT going to give them a checkpoint in the params file, but put the best_metric_model.pth from training.
 full_dataset_inference_test2_vitmae_huge_finetuned -> best_metric_model.pth came from full_dataset_training_vitmae_huge_finetuned
 full_dataset_inference_test2_vitmae_huge_finetuned_NHS -> best_metric_model.pth came from full_dataset_training_vitmae_huge_finetuned_NHS
 full_dataset_inference_test2_vitmae_huge_finetuned_ALTS -> best_metric_model.pth came from full_dataset_training_vitmae_huge_finetuned_ALTS
@@ -55,4 +56,4 @@ full_dataset_inference_test2_vitmae_huge_unfinetuned_ALTS -> best_metric_model.p
 
 
 Testing (Delete Later):
-python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/predictions/testing -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/data/full_dataset_duke_liger_split_df.csv -ic MASKED_IMG_ID -lc CC_ST -n 3
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/testing -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/data/full_dataset_duke_liger_split_df.csv -ic MASKED_IMG_ID -lc CC_ST -n 3

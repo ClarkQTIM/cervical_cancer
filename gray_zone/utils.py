@@ -16,7 +16,8 @@ from monai.transforms import (
     RandShiftIntensity,
     RandStdShiftIntensity,
     RandScaleIntensity,
-    RandGaussianNoise
+    RandGaussianNoise,
+    NormalizeIntensity
 )
 
 import torch
@@ -26,6 +27,21 @@ from sklearn.metrics import cohen_kappa_score
 from sklearn.preprocessing import label_binarize
 
 from gray_zone.models.coral import proba_to_label, label_to_levels
+
+import numpy as np
+from monai.transforms import Transform
+import torch
+
+class CustomIntensityNormalization(Transform):
+    def __init__(self, image_mean, image_std):
+        self.image_mean = image_mean
+        self.image_std = image_std
+
+    def __call__(self, data):
+        data = (data - np.array(self.image_mean, dtype=data.dtype)) / np.array(self.image_std, dtype=data.dtype)
+
+        return data
+
 
 
 def load_transforms(transforms_dict: dict):

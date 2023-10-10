@@ -69,7 +69,7 @@ def _run_model(output_path: str,
     weights = (torch.Tensor(param_dict['weights'])).float() if "weights" in param_dict else None
 
     is_balanced = param_dict['is_weighted_sampling'] or param_dict['is_weighted_loss']
-    print('Getting dataloaders')
+    print('\n', 'Getting dataloaders')
     train_loader, val_loader, test_loader, val_df, test_df, weights = loader(architecture=param_dict['architecture'],
                                                                              data_path=data_path,
                                                                              output_path=output_path,
@@ -93,7 +93,7 @@ def _run_model(output_path: str,
         img_dim = list(test_loader.dataset.__getitem__(0)[0].size())
     except: # For when we are using the ViTMAE
         img_dim = 0
-    print('Getting model')
+    print('\n', 'Getting model')
     model, act, feature_extractor = get_model(architecture=param_dict['architecture'], # Chris added feature_extractor
                            model_type=param_dict['model_type'],
                            chkpt_path = param_dict['chkpt_path'], # Chris added the chkpt_path
@@ -109,7 +109,7 @@ def _run_model(output_path: str,
     if not test:
         loss_function = get_loss(param_dict['loss'], param_dict['n_class'], param_dict['foc_gamma'], param_dict['is_weighted_loss'], weights, param_dict['device']) 
         
-        print('Training')
+        print('\n', 'Training')
         train(model=model,
               act=act,
               train_loader=train_loader,
@@ -123,10 +123,10 @@ def _run_model(output_path: str,
               n_class=param_dict['n_class'],
               model_type=param_dict['model_type'],
               val_metric=param_dict['val_metric'])
-        print('Done with training')
+        print('\n', 'Done with training')
     
     if param_dict['data_origin'] != "None": # So, if we are subsetting by study for training, we are going to redo the data_loading for ALL the data
-        print(f'We had subset the training data by {param_dict["data_origin"]} study, so we are reloading our data_loading with ALL the data')
+        print('\n', f'We had subset the training data by {param_dict["data_origin"]} study, so we are reloading our data_loading with ALL the data')
         train_loader, val_loader, test_loader, val_df, test_df, weights = loader(architecture=param_dict['architecture'],
                                                                                 data_path=data_path,
                                                                                 output_path=output_path,
@@ -148,13 +148,13 @@ def _run_model(output_path: str,
                                     label_colname, image_colname)
         
     else:
-        print('We did not subset the data by study for training, so we are NOT going to redo the data_loading.')
+        print('\n', 'We did not subset the data by study for training, so we are NOT going to redo the data_loading.')
         val_loader = get_unbalanced_loader(feature_extractor, val_df, data_path, param_dict['batch_size'], val_transforms,
                                     label_colname, image_colname)
         
     for data_loader, data_df, suffix in zip([test_loader, val_loader], [test_df, val_df], ['', '_validation']):
         if data_loader:
-            print('Evaluating')
+            print('\n', 'Evaluating')
             df = evaluate_model(model=model,
                                 loader=data_loader,
                                 output_path=output_path,
@@ -166,8 +166,8 @@ def _run_model(output_path: str,
                                 image_colname=image_colname,
                                 suffix=suffix)
             is_ordinal = param_dict['model_type'] == 'ordinal'
-            print('Done with Evaluating')
-            print('Processing output')
+            print('\n', 'Done with Evaluating')
+            print('\n', 'Processing output')
             process_output(output_path, is_ordinal, "predictions" + suffix + ".csv", n_class=param_dict['n_class'])
 
 

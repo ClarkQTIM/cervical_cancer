@@ -14,6 +14,37 @@ def set_dropout_rate(model, new_dropout_rate): # Chris added
         if isinstance(module, nn.Dropout):
             module.p = new_dropout_rate
 
+def load_vitmae_from_from_pretrained_w_weights(from_pretrained_model_path, weights_path, pretraining, classification, classes):
+
+    feature_extractor = ViTFeatureExtractor.from_pretrained(from_pretrained_model_path)
+
+    if weights_path == 'None' and pretraining:
+        print('We are loading in a pretrained reconstruction model directly from the source (no weight switching).')
+        model = ViTMAEForPreTraining.from_pretrained(from_pretrained_model_path)
+    elif weights_path == 'None' and classification:
+        print('We are loading in a pretrained classification model directly from the source (no weight switching).')
+        model = ViTForImageClassification.from_pretrained(from_pretrained_model_path, num_labels=classes)
+
+    if weights_path != 'None' and pretraining: # So, in this case, we are going to simply load in the fine-tuned weights to the pretraining
+        print('We are loading in a pretrained reconstruction model architecture and then switching it out with fine-tuned weights.')
+        model = ViTMAEForPreTraining.from_pretrained(from_pretrained_model_path)
+        checkpoint = torch.load(weights_path, map_location='cpu')
+        msg = model.load_state_dict(checkpoint, strict=False)
+        print(f'Loading checkpoint weights for pretrained message: {msg}')
+    elif weights_path != 'None' and classification: # So, in this case, we are going to replace the fine-tuned encoder of the pretrained (with weights loaded in)
+        # to serve as the encoder to the classification
+        print('We are loading in a pretrained reconstuction model, replacing the weights with a fine-tuned version, and then subsituting the encoder in a pretrained, but un-fine-tuned, classification model.')
+        model_pt = ViTMAEForPreTraining.from_pretrained(from_pretrained_model_path)
+        checkpoint = torch.load(weights_path, map_location='cpu')
+        msg = model_pt.load_state_dict(checkpoint, strict=False)
+        print(f'Loading checkpoint weights for pretrained message before switching encoders: {msg}')
+        model_clf = ViTForImageClassification.from_pretrained(from_pretrained_model_path, num_labels=classes)
+        msg = model_clf.vit.encoder.load_state_dict(model_pt.vit.encoder.state_dict())
+        print(f'Switching pretrained/fine-tuned encoder in the classification model message: {msg}')
+        model = model_clf
+
+    return feature_extractor, model
+
 def get_model(architecture: str,
               model_type: str,
               chkpt_path: str, # Chris added chkpt_path
@@ -45,13 +76,15 @@ def get_model(architecture: str,
                          pretrained=True)
 
     elif 'vit-mae' in architecture: # Chris added
-        model = ViTForImageClassification.from_pretrained(architecture, num_labels=output_channels)
-        feature_extractor = ViTFeatureExtractor.from_pretrained(architecture)
-        if chkpt_path !='None':
-            print(f'We are loading in {chkpt_path} as fine-tuned weights.')
-            checkpoint = torch.load(chkpt_path, map_location='cpu')
-            msg = model.load_state_dict(checkpoint, strict=False)
-            print(f'Message in model loading: {msg}')
+        # model = ViTForImageClassification.from_pretrained(architecture, num_labels=output_channels)
+        # feature_extractor = ViTFeatureExtractor.from_pretrained(architecture)
+        # if chkpt_path !='None':
+        #     print(f'We are loading in {chkpt_path} as fine-tuned weights.')
+        #     checkpoint = torch.load(chkpt_path, map_location='cpu')
+        #     msg = model.load_state_dict(checkpoint, strict=False)
+        #     print(f'Message in model loading: {msg}')
+
+        feature_extractor, model = load_vitmae_from_from_pretrained_w_weights(architecture, chkpt_path, False, True, output_channels)
 
         set_dropout_rate(model, dropout_rate)
 

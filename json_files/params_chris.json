@@ -1,6 +1,6 @@
 {
     "architecture": "facebook/vit-mae-huge",
-    "chkpt_path": "None",
+    "chkpt_path": "/mnt/models/Facebook_Huge_Cervix_Custom_Finetune_v2_Cont_best_epoch.pth",
     "model_type": "classification",
     "data_origin": "None",
     "loss": "qwk",

@@ -43,6 +43,12 @@ def _run_model(output_path: str,
     # Save configuration file in output directory
     param_dict = json.load(open(param_path, 'r'))
     df = pd.read_csv(csv_path)
+    print(f'Original df length {len(df)}')
+    if param_dict['data_origin'] != "None":
+        df = df[df['STUDY'] == param_dict['data_origin']]
+        print(f'We are subsetting the data by the following study/origin: {param_dict["data_origin"]}')
+    else:
+        print('We are NOT subsetting by study origin.')
 
     if test: 
         param_dict['n_class'] = int(num_class) # num_class provided by click.option n_class
@@ -65,7 +71,7 @@ def _run_model(output_path: str,
     is_balanced = param_dict['is_weighted_sampling'] or param_dict['is_weighted_loss']
     print('Getting dataloaders')
     train_loader, val_loader, test_loader, val_df, test_df, weights = loader(architecture=param_dict['architecture'],
-                                                                            data_path=data_path,
+                                                                             data_path=data_path,
                                                                              output_path=output_path,
                                                                              train_transforms=train_transforms,
                                                                              val_transforms=val_transforms,
@@ -74,12 +80,13 @@ def _run_model(output_path: str,
                                                                              image_colname=image_colname,
                                                                              split_colname=split_colname,
                                                                              patient_colname=patient_colname,
-                                                                             train_frac=param_dict['train_frac'], # Another line which is architecture=param_dict['']
+                                                                             train_frac=param_dict['train_frac'],
                                                                              test_frac=param_dict['test_frac'],
                                                                              seed=param_dict['seed'],
                                                                              batch_size=param_dict['batch_size'],
                                                                              balanced=is_balanced,
-                                                                             weights=weights)
+                                                                             weights=weights,
+                                                                             data_origin=param_dict['data_origin']) # Added data_origin
 
     # Get model
     try: # For when we are not using the ViTMAE
@@ -117,9 +124,34 @@ def _run_model(output_path: str,
               model_type=param_dict['model_type'],
               val_metric=param_dict['val_metric'])
         print('Done with training')
-    val_loader = get_unbalanced_loader(feature_extractor, val_df, data_path, param_dict['batch_size'], val_transforms,
-                                       label_colname, image_colname)
-    print('Done with loading new val_loader')
+    
+    if param_dict['data_origin'] != "None": # So, if we are subsetting by study for training, we are going to redo the data_loading for ALL the data
+        print(f'We had subset the training data by {param_dict["data_origin"]} study, so we are reloading our data_loading with ALL the data')
+        train_loader, val_loader, test_loader, val_df, test_df, weights = loader(architecture=param_dict['architecture'],
+                                                                                data_path=data_path,
+                                                                                output_path=output_path,
+                                                                                train_transforms=train_transforms,
+                                                                                val_transforms=val_transforms,
+                                                                                metadata_path=csv_path,
+                                                                                label_colname=label_colname,
+                                                                                image_colname=image_colname,
+                                                                                split_colname=split_colname,
+                                                                                patient_colname=patient_colname,
+                                                                                train_frac=param_dict['train_frac'],
+                                                                                test_frac=param_dict['test_frac'],
+                                                                                seed=param_dict['seed'],
+                                                                                batch_size=param_dict['batch_size'],
+                                                                                balanced=is_balanced,
+                                                                                weights=weights,
+                                                                                data_origin="None") # Note, this is now "None", so we use ALL the data for evaluation
+        val_loader = get_unbalanced_loader(feature_extractor, val_df, data_path, param_dict['batch_size'], val_transforms,
+                                    label_colname, image_colname)
+        
+    else:
+        print('We did not subset the data by study for training, so we are NOT going to redo the data_loading.')
+        val_loader = get_unbalanced_loader(feature_extractor, val_df, data_path, param_dict['batch_size'], val_transforms,
+                                    label_colname, image_colname)
+        
     for data_loader, data_df, suffix in zip([test_loader, val_loader], [test_df, val_df], ['', '_validation']):
         if data_loader:
             print('Evaluating')

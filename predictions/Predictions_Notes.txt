@@ -1,0 +1,58 @@
+Structure of Prediction Output
+-experiment_dir
+--checkpoints
+---Checkpoint for each epoch
+--best_metric_model.pth -> Best model
+-- params.json -> Parameter dictionary. This *must* be in the folder before training/inference.
+--predictions_validation.csv -> The results on the validation set (Training only)
+--predictions.csv -> The results on the training data
+--split_df.csv -> The splits used for training/inference
+--train_record.json -> Experiment parameters
+
+Experiments/Training/Inference Run:
+
+7/28: Ran Diagnostic classifier on DR images, which we don't have ground truths for. We used this code to do so:
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/predictions/test_dr -p /mnt/models/SRA_20210827_36/params.json -d /mnt/data/SRA_IRIS_DR -c /mnt/data/SRA_dr_curated_bb_via.csv -ic MASKED_IMG_ID -lc label -test -n 3
+Note that upon setting up the docker container, we ran into an issue with the gpu, so we changed the line I need to figure out how to get the gpu on my machine to be recognized by docker. For now, we changed the params.json line "device": "cpu".
+
+7/31: Ran Diagnostic classifier on Cambodia images, which we don't have ground truths for. We used this code to do so:
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/predictions/test_cambodia -p /mnt/models/SRA_20210827_36/params.json -d /mnt/data/SRA_IRIS_cambodia -c /mnt/data/SRA_cambodia_curated_bb_via.csv -ic image -lc label -test -n 3
+
+10/3:
+To run diagnostic *training* we do:
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/predictions/full_dataset_training_vitmae_huge_unfinetuned -p /mnt/predictions/test_full_dataset_training_vitmae_huge_unfinetuned/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/data/full_dataset_duke_liger_split_df.csv -ic MASKED_IMG_ID -lc CC_ST -n 3
+
+10/6: 
+For the individual study trainings:
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/predictions/full_dataset_training_vitmae_huge_unfinetuned_NHS -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/data/full_dataset_duke_liger_split_df.csv -ic MASKED_IMG_ID -lc CC_ST -n 3
+Be sure to change the "data_origin" in the params file you're calling ('/mnt/cervical_cancer/json_files/params_chris.json', in this case)
+
+10/8:
+Ran training on fine-tuned version of ViTMAE
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/predictions/full_dataset_training_vitmae_huge_finetuned -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/data/full_dataset_duke_liger_split_df.csv -ic MASKED_IMG_ID -lc CC_ST -n 3
+
+10/9:
+Ran inference on "test2" by taking the model_36_split_df_all_gt.csv and creating a second model_36_split_df_test_2_gt.csv where we removed
+anything that was "test" in the "dataset" column and replacing the leftover "test2" with test, and then setting the '-test' flag. The command is:
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/predictions/full_dataset_inference_test2_vitmae_huge_finetuned_ALTS -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/data/model_36_split_df_test_2_gt.csv -ic MASKED_IMG_ID -lc CC_ST -n 3 -test
+
+10/9:
+So, at this point, we have the following training directories. Note that these have the inference on 'val' and 'test'.
+full_dataset_training_vitmae_huge_finetuned -> Finetuned on full_dataset_duke_liger_itoju_5StLowQual
+full_dataset_training_vitmae_huge_finetuned_NHS -> Finetuned on full_dataset_duke_liger_itoju_5StLowQual and classification trained on only NHS
+full_dataset_training_vitmae_huge_finetuned_ALTS -> Finetuned on full_dataset_duke_liger_itoju_5StLowQual and classification trained on only ALTS
+full_dataset_training_vitmae_huge_unfinetuned -> 'facebook/vit-mae-huge' finetuned on ImageNet
+full_dataset_training_vitmae_huge_unfinetuned_NHS -> 'facebook/vit-mae-huge' finetuned on ImageNet and classification trained on only NHS
+full_dataset_training_vitmae_huge_unfinetuned_ALTS -> 'facebook/vit-mae-huge' finetuned on ImageNet and classification trained on only ALTS
+
+We also have the following inference directories specifically for 'test2'. Note that these are not trained, just inference on 'test2'.
+full_dataset_inference_test2_vitmae_huge_finetuned -> best_metric_model.pth came from full_dataset_training_vitmae_huge_finetuned
+full_dataset_inference_test2_vitmae_huge_finetuned_NHS -> best_metric_model.pth came from full_dataset_training_vitmae_huge_finetuned_NHS
+full_dataset_inference_test2_vitmae_huge_finetuned_ALTS -> best_metric_model.pth came from full_dataset_training_vitmae_huge_finetuned_ALTS
+full_dataset_inference_test2_vitmae_huge_unfinetuned -> best_metric_model.pth came from full_dataset_training_vitmae_huge_unfinetuned
+full_dataset_inference_test2_vitmae_huge_unfinetuned_NHS -> best_metric_model.pth came from full_dataset_training_vitmae_huge_unfinetuned_NHS
+full_dataset_inference_test2_vitmae_huge_unfinetuned_ALTS -> best_metric_model.pth came from full_dataset_training_vitmae_huge_unfinetuned_ALTS
+
+
+Testing (Delete Later):
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/predictions/testing -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/data/full_dataset_duke_liger_split_df.csv -ic MASKED_IMG_ID -lc CC_ST -n 3

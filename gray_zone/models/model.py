@@ -51,7 +51,7 @@ def get_model(architecture: str,
             print(f'We are loading in {chkpt_path} as fine-tuned weights.')
             checkpoint = torch.load(chkpt_path, map_location='cpu')
             msg = model.load_state_dict(checkpoint, strict=False)
-            print(msg)
+            print(f'Message in model loading: {msg}')
 
         set_dropout_rate(model, dropout_rate)
 

@@ -32,6 +32,8 @@ class Dataset(torch.utils.data.Dataset):
         self.transforms = transforms
         self.label_name = label_colname
         self.image_name = image_colname
+        print('Transforms in the data loader:', self.transforms)
+        sys.exit()
 
     def __len__(self):
         return len(self.df)
@@ -92,7 +94,8 @@ def loader(architecture: str, # Chris added
            label_colname: str = 'label',
            image_colname: str = 'image',
            split_colname: str = 'dataset',
-           patient_colname: str = 'patient'):
+           patient_colname: str = 'patient',
+           data_origin: str = None):
             # Add an input that referneces the architecture params so I can get the feature extractor from vit-mae
     """
     Inspired by https://github.com/Project-MONAI/tutorials/blob/master/2d_classification/mednist_tutorial.ipynb
@@ -111,12 +114,15 @@ def loader(architecture: str, # Chris added
     # Load metadata and create val/train/test split if not already done
     split_df = split_dataset(output_path, train_frac=train_frac, test_frac=test_frac,
                              seed=seed, metadata_path=metadata_path, split_colname=split_colname, image_colname=image_colname,
-                             patient_colname=patient_colname) # added image_colname on 08/21/2022, remove for DC
+                             patient_colname=patient_colname, data_origin=data_origin) # added image_colname on 08/21/2022, remove for DC
     train_loader, val_loader, test_loader = None, None, None
 
     # Training loader
     df_train = split_df[split_df[split_colname] == "train"]
     if len(df_train):
+        if data_origin != "None":
+            df_train = df_train[df_train['STUDY'] == data_origin]
+            print(f'We have subset with {data_origin} and have {len(df_train)} training examples')
         if balanced:
             sampler, weights = get_balanced_sampler(df_train, label_colname, weights)
         shuffle = not balanced
@@ -128,6 +134,8 @@ def loader(architecture: str, # Chris added
     # Val loader
     df_val = split_df[split_df[split_colname] == "val"]
     if len(df_val):
+        if data_origin != "None":
+            df_val = df_val[df_val['STUDY'] == data_origin]
         if balanced:
             sampler, _ = get_balanced_sampler(df_val, label_colname, weights)
         val_ds = Dataset(feature_extractor, df_val, data_path, val_transforms, label_colname, image_colname)
@@ -137,7 +145,8 @@ def loader(architecture: str, # Chris added
     # Test loader
     df_test = split_df[split_df[split_colname] == "test"]
     if len(df_test):
-
+        if data_origin != "None":
+            df_test = df_test[df_test['STUDY'] == data_origin]
         test_ds = Dataset(feature_extractor, df_test, data_path, val_transforms, label_colname, image_colname)
         test_loader = torch.utils.data.DataLoader(test_ds, batch_size=batch_size, num_workers=10)
 
@@ -170,17 +179,25 @@ def split_dataset(output_path: str,
                   seed: int,
                   split_colname: str,
                   image_colname: str,
-                  patient_colname: str):
+                  patient_colname: str,
+                  data_origin: str):
     """Load csv file containing metadata (image filenames, labels, patient ids, and val/train/test split)"""
-    split_df_path = os.path.join(output_path, "split_df.csv")
+    if data_origin == "None":
+        split_df_path = os.path.join(output_path, "split_df.csv")
+    else:
+        split_df_path = os.path.join(output_path, "split_df_"+data_origin+".csv")
 
     # If output_path / "split_df.csv" exists use the already split csv
     if os.path.isfile(split_df_path):
         df = pd.read_csv(split_df_path)
-        print(len(df), df.columns)
+        if data_origin != "None":
+            df = df[df['STUDY'] == data_origin]
+            print(f'We have subset the split_df by {data_origin}')
     # If output_path / "split_df.csv" doesn't exist: split images by patient using the train and test fractions
     else:
         df = pd.read_csv(metadata_path)
+        if data_origin != "None":
+            df = df[df['STUDY'] == data_origin]
         # If images are not already split into val/train/test, split by patient
         if split_colname not in df:
             print('generating splits based on metrics provided')

@@ -33,6 +33,8 @@ def train(model: [torch.Tensor],
     epoch_loss_values = []
     metric_values = []
 
+    print(f'Length of dataloaders {len(train_loader), len(val_loader)}')
+
     for epoch in range(n_epochs):
         print("-" * 10)
         print(f"epoch {epoch + 1}/{n_epochs}")

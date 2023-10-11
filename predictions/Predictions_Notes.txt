@@ -55,5 +55,16 @@ full_dataset_inference_test2_vitmae_huge_unfinetuned_NHS -> best_metric_model.pt
 full_dataset_inference_test2_vitmae_huge_unfinetuned_ALTS -> best_metric_model.pth came from full_dataset_training_vitmae_huge_unfinetuned_ALTS
 
 
-Testing (Delete Later):
-python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/testing -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/data/full_dataset_duke_liger_split_df.csv -ic MASKED_IMG_ID -lc CC_ST -n 3
+10/10: We added where we can use the augmentations, so we are going to re-run two of them, the un-fine-tuned and the fine-tuned. /mnt/models/Facebook_Huge_Cervix_Custom_Finetune_v2_Cont_best_epoch.pth
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/full_dataset_training_vitmae_huge_finetuned_augs -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/data/full_dataset_duke_liger_split_df.csv -ic MASKED_IMG_ID -lc CC_ST -n 3
+Thus, we have:
+full_dataset_training_vitmae_huge_finetuned_augs -> Finetuned on full_dataset_duke_liger_itoju_5StLowQual with augmentations
+full_dataset_training_vitmae_huge_unfinetuned_augs -> 'facebook/vit-mae-huge' finetuned on ImageNet with augmentations
+
+
+
+10/11: We ran inference on test2 for the un- and fine-tuned versions of ViTMAE will all the data for downstream (no NHS or ALTS) using the following script:
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/full_dataset_inference_test2_vitmae_huge_unfinetuned_augs -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/data/model_36_split_df_test2_gt.csv -ic MASKED_IMG_ID -lc CC_ST -n 3 -test
+Thus we have:
+full_dataset_inference_test2_vitmae_huge_unfinetuned_augs -> best_metric_model.pth came from full_dataset_training_vitmae_huge_unfinetuned
+full_dataset_inference_test2_vitmae_huge_finetuned_augs -> best_metric_model.pth came from full_dataset_training_vitmae_huge_finetuned

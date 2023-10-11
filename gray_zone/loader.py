@@ -12,8 +12,6 @@ from transformers import ViTFeatureExtractor
 
 def transform_dataset(dataset, transformation): # Chris added
 
-    print(dataset)
-
     prepared_ds = dataset.with_transform(transformation)
 
     return prepared_ds
@@ -122,7 +120,7 @@ def loader(architecture: str, # Chris added
          test df
     """
 
-    # Load in feature extractor if using a pretrained ViTMAE. Chris added
+    # Load in feature extractor if using a pretrained ViTMAE
     feature_extractor = None
     if 'mae' in architecture: 
         print('We are using a pre-made feature extractor!')

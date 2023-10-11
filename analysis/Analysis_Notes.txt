@@ -1,0 +1,4 @@
+The script auc_roc_cm.py creates an AUC-ROC plot and a confusion matrix plot given prediction and ground truth csvs.
+
+The names are: <Model_type> + <Size> + <ImageNet/Finetuned (with all of full_dataset_duke_liger_itoju_5StLowQual)> 
++ <Classification Data Used for Downstream Task (e.g., full_dataset)> + <Inference Dataset (Test/Val/Test2)> + <AUC_ROC/CM>

@@ -9,6 +9,7 @@ from sklearn.metrics import cohen_kappa_score
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import label_binarize
+import json
 
 from gray_zone.loader import Dataset
 from gray_zone.utils import get_label, get_validation_metric, modify_label_outputs_for_model_type
@@ -26,12 +27,17 @@ def train(model: [torch.Tensor],
           scheduler: any,
           n_class: int,
           model_type: str = 'classification',
-          val_metric: str = None):
+          val_metric: str = None,
+          make_plots: bool = False):
+    
     """ Training loop. """
     best_metric = -np.inf
     best_metric_epoch = -1
     epoch_loss_values = []
     metric_values = []
+
+    if make_plots:
+        epoch_loss_val_values = []
 
     print(f'Length of dataloaders {len(train_loader), len(val_loader)}')
 
@@ -97,6 +103,9 @@ def train(model: [torch.Tensor],
             avg_val_loss = val_loss / step
             scheduler.step(val_loss / step)
 
+            if make_plots:
+                epoch_loss_val_values.append(avg_val_loss)
+
             y_pred = y_pred.detach().cpu().numpy()
             y = y.detach().cpu().numpy()
 
@@ -130,4 +139,18 @@ def train(model: [torch.Tensor],
             torch.save(model.state_dict(), os.path.join(
                 output_path, "checkpoints", f"checkpoint{epoch}.pth"))
 
-
+        if make_plots:
+            train_loss_values = epoch_loss_values
+            val_loss_values = [item.detach().cpu().numpy() for item in epoch_loss_val_values]
+            loss_dict = {}
+            loss_dict['Train'] = train_loss_values
+            loss_dict['Val'] = val_loss_values
+            loss_dict['Metric'] = metric_values
+            df_loss_values = pd.DataFrame(loss_dict)
+            df_loss_values.to_csv(os.path.join(output_path, 'loss_metric_values.csv'))
+            best_metric_dict = {}
+            best_metric_dict['best_val_metric'] = val_metric
+            best_metric_dict['best_val_metric_value'] = best_metric
+            best_metric_dict['epoch_at_best_metric'] = best_metric_epoch
+            with open(os.path.join(output_path, "best_metric_epoch.json"), "w") as outfile: 
+                json.dump(best_metric_dict, outfile, indent=4)

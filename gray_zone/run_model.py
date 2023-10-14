@@ -29,7 +29,8 @@ def _run_model(output_path: str,
                patient_colname: str,
                transfer_learning: str,
                test: bool,
-               num_class: int) -> None:
+               num_class: int,
+               make_plots: bool) -> None:
     """ Run deep learning model for training and evaluation for classification tasks. """
     # Create output directory if it doesn't exist
     if not os.path.isdir(output_path):
@@ -122,7 +123,8 @@ def _run_model(output_path: str,
               scheduler=scheduler,
               n_class=param_dict['n_class'],
               model_type=param_dict['model_type'],
-              val_metric=param_dict['val_metric'])
+              val_metric=param_dict['val_metric'],
+              make_plots=make_plots)
         print('\n', 'Done with training')
     
     if param_dict['data_origin'] != "None": # So, if we are subsetting by study for training, we are going to redo the data_loading for ALL the data
@@ -218,6 +220,7 @@ class RequiredIf(click.Option):
 @click.option('--num-class', '-n', default=None, prompt=True, cls=RequiredIf, required_if='test', 
               help="# of classes if running inference (--test) and csv has no ground truth labels\
               only REQUIRED if --test is true. The RequiredIf class ensures that --test and --num-class are mutually inclusive")
+@click.option('--make-plots', '-mp', default=None, is_flag=True, help="Option to store losses/metric/stored_epoch to allow for plotting learning curves")
 def run_model(output_path: str,
               param_path: str,
               data_path: str,
@@ -228,11 +231,11 @@ def run_model(output_path: str,
               patient_colname: str,
               transfer_learning: str,
               test: bool,
-              num_class: int) -> None:
+              num_class: int,
+              make_plots: bool) -> None:
     """Train deep learning model using CLI. """
     _run_model(output_path, param_path, data_path, csv_path, label_colname, image_colname, split_colname,
-               patient_colname, transfer_learning, test, num_class)
-
+               patient_colname, transfer_learning, test, num_class, make_plots)
 
 if __name__ == "__main__":
     run_model()

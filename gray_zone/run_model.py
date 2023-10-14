@@ -31,8 +31,7 @@ def _run_model(output_path: str,
                test: bool,
                num_class: int,
                make_plots: bool) -> None:
-               num_class: int,
-               make_plots: bool) -> None:
+    
     """ Run deep learning model for training and evaluation for classification tasks. """
     # Create output directory if it doesn't exist
     if not os.path.isdir(output_path):
@@ -125,8 +124,6 @@ def _run_model(output_path: str,
               scheduler=scheduler,
               n_class=param_dict['n_class'],
               model_type=param_dict['model_type'],
-              val_metric=param_dict['val_metric'],
-              make_plots=make_plots)
               val_metric=param_dict['val_metric'],
               make_plots=make_plots)
         print('\n', 'Done with training')
@@ -238,8 +235,7 @@ def run_model(output_path: str,
               test: bool,
               num_class: int,
               make_plots: bool) -> None:
-              num_class: int,
-              make_plots: bool) -> None:
+
     """Train deep learning model using CLI. """
     _run_model(output_path, param_path, data_path, csv_path, label_colname, image_colname, split_colname,
                patient_colname, transfer_learning, test, num_class, make_plots)

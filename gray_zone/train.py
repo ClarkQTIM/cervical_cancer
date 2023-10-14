@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import label_binarize
 import json
+import json
 
 from gray_zone.loader import Dataset
 from gray_zone.utils import get_label, get_validation_metric, modify_label_outputs_for_model_type
@@ -30,11 +31,16 @@ def train(model: [torch.Tensor],
           val_metric: str = None,
           make_plots: bool = False):
     
+          val_metric: str = None,
+          make_plots: bool = False):
     """ Training loop. """
     best_metric = -np.inf
     best_metric_epoch = -1
     epoch_loss_values = []
     metric_values = []
+
+    if make_plots:
+        epoch_loss_val_values = []
 
     if make_plots:
         epoch_loss_val_values = []
@@ -102,6 +108,9 @@ def train(model: [torch.Tensor],
 
             avg_val_loss = val_loss / step
             scheduler.step(val_loss / step)
+
+            if make_plots:
+                epoch_loss_val_values.append(avg_val_loss)
 
             if make_plots:
                 epoch_loss_val_values.append(avg_val_loss)

@@ -31,6 +31,8 @@ def _run_model(output_path: str,
                test: bool,
                num_class: int,
                make_plots: bool) -> None:
+               num_class: int,
+               make_plots: bool) -> None:
     """ Run deep learning model for training and evaluation for classification tasks. """
     # Create output directory if it doesn't exist
     if not os.path.isdir(output_path):
@@ -123,6 +125,8 @@ def _run_model(output_path: str,
               scheduler=scheduler,
               n_class=param_dict['n_class'],
               model_type=param_dict['model_type'],
+              val_metric=param_dict['val_metric'],
+              make_plots=make_plots)
               val_metric=param_dict['val_metric'],
               make_plots=make_plots)
         print('\n', 'Done with training')
@@ -221,6 +225,7 @@ class RequiredIf(click.Option):
               help="# of classes if running inference (--test) and csv has no ground truth labels\
               only REQUIRED if --test is true. The RequiredIf class ensures that --test and --num-class are mutually inclusive")
 @click.option('--make-plots', '-mp', default=None, is_flag=True, help="Option to store losses/metric/stored_epoch to allow for plotting learning curves")
+@click.option('--make-plots', '-mp', default=None, is_flag=True, help="Option to store losses/metric/stored_epoch to allow for plotting learning curves")
 def run_model(output_path: str,
               param_path: str,
               data_path: str,
@@ -231,6 +236,8 @@ def run_model(output_path: str,
               patient_colname: str,
               transfer_learning: str,
               test: bool,
+              num_class: int,
+              make_plots: bool) -> None:
               num_class: int,
               make_plots: bool) -> None:
     """Train deep learning model using CLI. """

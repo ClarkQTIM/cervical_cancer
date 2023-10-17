@@ -77,23 +77,23 @@ def plot_confusion_matrix(y_true, y_pred, title, save_dir, save_title):
 
 if __name__ == "__main__":
 
-    save_dir = '/mnt/analysis/ViTMAE_Huge_Finetuned_full_dataset_augs'
+    save_dir = '/mnt/cervical_cancer/analysis/ViT_Downstream'
  
     # Getting csvs
     ## Validation
-    validation_csv_path = '/mnt/cervical_cancer/predictions/full_dataset_training_vitmae_huge_finetuned_augs/predictions_validation.csv'
+    validation_csv_path = '/mnt/cervical_cancer/predictions/full_dataset_vit_huge_downstream/predictions_validation.csv'
     validation_csv = pd.read_csv(validation_csv_path)
 
     ## Testing
-    testing_csv_path = '/mnt/cervical_cancer/predictions/full_dataset_training_vitmae_huge_finetuned_augs/predictions.csv'
+    testing_csv_path = '/mnt/cervical_cancer/predictions/full_dataset_vit_huge_downstream/predictions.csv'
     testing_csv = pd.read_csv(testing_csv_path)
 
-    testing_ground_truths_csv_path = '/mnt/data/model_36_split_df_all_gt.csv' # Needed as the predictions.csv doesn't have the ground truths
+    testing_ground_truths_csv_path = '/mnt/cervical_cancer/csvs/model_36_split_df_all_gt.csv' # Needed as the predictions.csv doesn't have the ground truths
     testing_ground_truths_csv = pd.read_csv(testing_ground_truths_csv_path)
     testing_ground_truths_csv = testing_ground_truths_csv[testing_ground_truths_csv['dataset'] == 'test'] # Needed, as there are two test sets (test and test2) in this csv
 
-    testing2_csv_path = '/mnt/cervical_cancer/predictions/full_dataset_inference_test2_vitmae_huge_finetuned_augs/predictions.csv'
-    testing2_csv = pd.read_csv(testing2_csv_path)
+    # testing2_csv_path = '/mnt/cervical_cancer/predictions/full_dataset_vit_huge_inference_test2/predictions.csv'
+    # testing2_csv = pd.read_csv(testing2_csv_path)
 
     # testing2_ground_truths_csv_path = '/mnt/data/model_36_split_df_all_gt.csv'
     # testing2_ground_truths_csv = pd.read_csv(testing_ground_truths_csv_path)
@@ -104,21 +104,21 @@ if __name__ == "__main__":
     prediction_mc_probs = [ast.literal_eval(value) for value in validation_csv['pred_mc']]
     prediction = [int(value) for value in validation_csv['predicted_class']]
 
-    plot_auc_roc(ground_truth, prediction_mc_probs, 'Multiclass Receiver Operating Characteristic (ROC) Curves for Validation Predictions', save_dir, 'ViTMAE_Huge_Finetuned_full_dataset_Val_AUC_ROC.png')
-    plot_confusion_matrix(ground_truth, prediction, 'Confusion Matrix for Validation Set on Finetuned ViTMAE Huge', save_dir, 'ViTMAE_Huge_Finetuned_full_dataset_Val_CM.png')
+    plot_auc_roc(ground_truth, prediction_mc_probs, 'Multiclass Receiver Operating Characteristic (ROC) Curves for Validation Predictions', save_dir, 'full_dataset_vit_huge_downstream_Val_AUC_ROC.png')
+    plot_confusion_matrix(ground_truth, prediction, 'Confusion Matrix for Validation Set on ViT Huge', save_dir, 'full_dataset_vit_huge_downstream_Val_CM.png')
 
     # Testing
     ground_truth = [int(value) for value in testing_ground_truths_csv['CC_ST']] # Pulling the ground truths from a different file
     prediction_mc_probs = [ast.literal_eval(value) for value in testing_csv['pred_mc']]
     prediction = [int(value) for value in testing_csv['predicted_class']]
 
-    plot_auc_roc(ground_truth, prediction_mc_probs, 'Multiclass Receiver Operating Characteristic (ROC) Curves for Test Predictions', save_dir, 'ViTMAE_Huge_Finetuned_full_dataset_Test_AUC_ROC.png')
-    plot_confusion_matrix(ground_truth, prediction, 'Confusion Matrix for Validation Set on Finetuned ViTMAE Huge', save_dir, 'ViTMAE_Huge_Finetuned_full_dataset_Test_CM.png')
+    plot_auc_roc(ground_truth, prediction_mc_probs, 'Multiclass Receiver Operating Characteristic (ROC) Curves for Test Predictions', save_dir, 'full_dataset_vit_huge_downstream_Test_AUC_ROC.png')
+    plot_confusion_matrix(ground_truth, prediction, 'Confusion Matrix for Validation Set on ViT Huge Huge', save_dir, 'full_dataset_vit_huge_downstream_Test_CM.png')
 
-    # Testing2
-    ground_truth = [int(value) for value in testing2_csv['CC_ST']]
-    prediction_mc_probs = [ast.literal_eval(value) for value in testing2_csv['pred_mc']]
-    prediction = [int(value) for value in testing2_csv['predicted_class']]
+    # # Testing2
+    # ground_truth = [int(value) for value in testing2_csv['CC_ST']]
+    # prediction_mc_probs = [ast.literal_eval(value) for value in testing2_csv['pred_mc']]
+    # prediction = [int(value) for value in testing2_csv['predicted_class']]
 
-    plot_auc_roc(ground_truth, prediction_mc_probs, 'Multiclass Receiver Operating Characteristic (ROC) Curves for Test2 Predictions', save_dir, 'ViTMAE_Huge_Finetuned_full_dataset_Test2_AUC_ROC.png')
-    plot_confusion_matrix(ground_truth, prediction, 'Confusion Matrix for Validation Set on Finetuned ViTMAE Huge', save_dir, 'ViTMAE_Huge_Finetuned_full_dataset_Test2_CM.png')
+    # plot_auc_roc(ground_truth, prediction_mc_probs, 'Multiclass Receiver Operating Characteristic (ROC) Curves for Test2 Predictions', save_dir, 'ViTMAE_Huge_Finetuned_full_dataset_Test2_AUC_ROC.png')
+    # plot_confusion_matrix(ground_truth, prediction, 'Confusion Matrix for Validation Set on Finetuned ViTMAE Huge', save_dir, 'ViTMAE_Huge_Finetuned_full_dataset_Test2_CM.png')

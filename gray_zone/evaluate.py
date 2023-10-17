@@ -17,9 +17,10 @@ def evaluate_model(model: torch.nn.Module,
                    is_mc: bool = True,
                    image_colname: str = 'image',
                    suffix: str = None) -> pd.DataFrame:
+    
     """ Evaluate model on test set. """
+    
     best_model_path = os.path.join(output_path, "best_metric_model.pth")
-
     msg = model.load_state_dict(torch.load(best_model_path, map_location=device))
     print(f'Message in evaluation: {msg}')
     model.eval()

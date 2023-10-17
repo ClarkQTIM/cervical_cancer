@@ -32,6 +32,7 @@ def train(model: [torch.Tensor],
           make_plots: bool = False):
 
     """ Training loop. """
+    
     best_metric = -np.inf
     best_metric_epoch = -1
     epoch_loss_values = []
@@ -106,9 +107,6 @@ def train(model: [torch.Tensor],
 
             avg_val_loss = val_loss / step
             scheduler.step(val_loss / step)
-
-            if make_plots:
-                epoch_loss_val_values.append(avg_val_loss)
 
             if make_plots:
                 epoch_loss_val_values.append(avg_val_loss)

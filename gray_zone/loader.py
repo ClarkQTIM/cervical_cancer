@@ -122,7 +122,7 @@ def loader(architecture: str, # Chris added
 
     # Load in feature extractor if using a pretrained ViTMAE
     feature_extractor = None
-    if 'mae' in architecture: 
+    if 'vit' in architecture: 
         print('We are using a pre-made feature extractor!')
         feature_extractor = ViTFeatureExtractor.from_pretrained(architecture)
 

@@ -89,7 +89,8 @@ def get_model(architecture: str,
         set_dropout_rate(model, dropout_rate)
 
     elif 'vit' in architecture:
-        model = vit.vit_b16(num_classes=output_channels, image_size=img_dim[1], dropout_rate=dropout_rate)
+        # model = vit.vit_b16(num_classes=output_channels, image_size=img_dim[1], dropout_rate=dropout_rate)
+        feature_extractor, model = load_vitmae_from_from_pretrained_w_weights(architecture, chkpt_path, False, True, output_channels)
         
     elif 'vgg' in architecture:
         vgg_model = getattr(vgg, architecture)

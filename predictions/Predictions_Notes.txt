@@ -70,3 +70,20 @@ full_dataset_inference_test2_vitmae_huge_finetuned_augs -> best_metric_model.pth
 10/12:
 Reran two models (finetuned and not) with the -mp flag set so we can get some training metrics out of it. The commands we used were:
 python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/full_dataset_training_vitmae_huge_finetuned_metrics -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/cervical_cancer/csvs/full_dataset_duke_liger_split_df.csv -ic MASKED_IMG_ID -lc CC_ST -n 3 -mp
+
+10/16: 
+Running a vit classification model trained on ImageNet (This is NOT a SSL pipeline, standard supervised classification).
+We are using the following command:
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/full_dataset_vit_huge_downstream -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/cervical_cancer/csvs/full_dataset_duke_liger_split_df.csv -ic MASKED_IMG_ID -lc CC_ST -n 3 -mp
+
+10/16: 
+Re-running vitmae un/fine-tuned called full_dataset_training_vitmae_huge_un/finetuned_300 with the following:
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/full_dataset_training_vitmae_huge_unfinetuned_300 -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/cervical_cancer/csvs/full_dataset_duke_liger_split_df.csv -ic MASKED_IMG_ID -lc CC_ST -n 3 -mp
+
+And the vit classification model trained on ImageNet (This is NOT a SSL pipeline, standard supervised classification) with 300 epochs
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/full_dataset_vit_huge_downstream_300 -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/cervical_cancer/csvs/full_dataset_duke_liger_split_df.csv -ic MASKED_IMG_ID -lc CC_ST -n 3 -mp
+
+10/17:
+We are going to run inference on test2 with the non-SSL ViT using this command:
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/full_dataset_vit_downstream_inference_test2 -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/cervical_cancer/csvs/model_36_split_df_test2_gt.csv -ic MASKED_IMG_ID -lc CC_ST -n 3 -test
+The 'best_model' is /mnt/cervical_cancer/predictions/full_dataset_vit_huge_downstream/best_metric_model.pth

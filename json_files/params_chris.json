@@ -1,5 +1,5 @@
 {
-    "architecture": "google/vit-huge-patch14-224-in21k",
+    "architecture": "facebook/vit-mae-huge",
     "chkpt_path": "None",
     "model_type": "classification",
     "data_origin": "None",

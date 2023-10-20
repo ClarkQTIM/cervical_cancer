@@ -1,7 +1,7 @@
 {
     "architecture": "facebook/vit-mae-huge",
-    "chkpt_path": "None",
-    "model_type": "classification",
+    "chkpt_path": "/mnt/models/Facebook_Huge_Cervix_Custom_Finetune_v2_Cont_best_epoch.pth",
+    "model_type": "classification_lin_probing",
     "data_origin": "None",
     "loss": "qwk",
     "foc_gamma": null,
@@ -10,7 +10,7 @@
     "kappa_coeff": null,
     "batch_size": 8,
     "lr": 1e-05,
-    "n_epochs": 300,
+    "n_epochs": 75,
     "device": "cuda:1",
     "val_metric": "custom_cervix",
     "dropout_rate": 0.1,

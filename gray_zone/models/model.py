@@ -88,6 +88,14 @@ def get_model(architecture: str,
 
         set_dropout_rate(model, dropout_rate)
 
+        if "lin_probing" in model_type: # If we are doing Linear Probing, we are freezing everything but the final, classification layer
+            print('We are applying Linear Probing. The following parameters will not be frozen:')
+            for name, param in model.named_parameters():
+                if 'classifier' not in name:  # Freeze all layers except the classifier (final linear layer)
+                    param.requires_grad = False
+                else:
+                    print(name, param)
+
     elif 'vit' in architecture:
         # model = vit.vit_b16(num_classes=output_channels, image_size=img_dim[1], dropout_rate=dropout_rate)
         feature_extractor, model = load_vitmae_from_from_pretrained_w_weights(architecture, chkpt_path, False, True, output_channels)
@@ -129,7 +137,7 @@ def get_model_type_params(model_type: str,
     elif model_type == 'regression':
         out_channels = 1
         act = Activations(other=lambda x: x)
-    elif model_type == 'classification':
+    elif 'classification' in model_type: # Changed here from "elif model_type == 'classification'"" so we can add 'lin_probing', as well.
         # Multiclass model
         if n_class > 2:
             act = torch.nn.Softmax(dim=1)

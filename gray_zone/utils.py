@@ -42,8 +42,6 @@ class CustomIntensityNormalization(Transform):
 
         return data
 
-
-
 def load_transforms(transforms_dict: dict):
     """Converts dictionary into python transforms"""
     transform_lst = []

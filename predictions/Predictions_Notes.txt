@@ -117,3 +117,13 @@ python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predi
 
 We are then going to start with a blank (only initialized) ViTMAE model and fine-tune it FROM SCRATCH on the cervical data. This will happen in
 the SSL project folder.
+
+10/23:
+We are going to run the downstream classification task on the from-scratch ViTMAE fine-tuned for reconstruction ONLY ON CERVICAL DATA.
+As is, we are NOT loading in ImageNet weights, but reinitializing. This is in vitmae_huge_from_scratch_finetuned_on_full_dataset_training.
+We put Facebook_Huge_Cervix_Custom_From_Scratch_best_epoch as the checkpoint in params_chris.json. 
+We are using the following command:
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/vitmae_huge_from_scratch_finetuned_on_full_dataset_training -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/cervical_cancer/csvs/full_dataset_duke_liger_split_df.csv -ic MASKED_IMG_ID -lc CC_ST -n 3 -mp
+
+We then ran the inference on test2 with:
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/vitmae_huge_from_scratch_finetuned_on_full_dataset_inference_test2 -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/cervical_cancer/csvs/model_36_split_df_test2_gt.csv -ic MASKED_IMG_ID -lc CC_ST -n 3 -test

@@ -4,7 +4,7 @@ import torch
 import monai
 from monai.transforms import Activations
 import torch.nn as nn
-from transformers import ViTFeatureExtractor, ViTMAEForPreTraining, ViTForImageClassification
+from transformers import ViTFeatureExtractor, ViTMAEForPreTraining, ViTForImageClassification, Dinov2ForImageClassification, AutoImageProcessor
 from gray_zone.models import dropout_resnet, resnest, vit, vgg
 from gray_zone.models.coral import CoralLayer
 
@@ -45,6 +45,26 @@ def load_vitmae_from_from_pretrained_w_weights(from_pretrained_model_path, weigh
 
     return feature_extractor, model
 
+def load_dinov2_from_pretrained_w_weights_change_classification_head(from_pretrained_model_path, weights_path, classes):
+
+    feature_extractor = AutoImageProcessor.from_pretrained(from_pretrained_model_path)
+
+    if weights_path == 'None':
+        print('We are loading in a pre-trained DINOv2 classification model and changing the classification head.')
+        model = Dinov2ForImageClassification.from_pretrained(from_pretrained_model_path)
+        # Access the feature dimension from the Dinov2Model
+        in_features = model.classifier.in_features
+        # Replace the 'classifier' layer with a new linear layer
+        model.classifier = nn.Linear(in_features, classes)
+
+    elif weights_path != 'None':
+        print('We are loading in a pre-trained DINOv2 classification model and switching the classification head. We are then switching weights to something already trained.')
+        checkpoint = torch.load(weights_path, map_location='cpu')
+        msg = model.load_state_dict(checkpoint, strict=False)
+        print(f'Loading checkpoint weights for pretrained message: {msg}')
+
+    return feature_extractor, model
+
 def get_model(architecture: str,
               model_type: str,
               chkpt_path: str, # Chris added chkpt_path
@@ -76,15 +96,22 @@ def get_model(architecture: str,
                          pretrained=True)
 
     elif 'vit-mae' in architecture: # Chris added
-        # model = ViTForImageClassification.from_pretrained(architecture, num_labels=output_channels)
-        # feature_extractor = ViTFeatureExtractor.from_pretrained(architecture)
-        # if chkpt_path !='None':
-        #     print(f'We are loading in {chkpt_path} as fine-tuned weights.')
-        #     checkpoint = torch.load(chkpt_path, map_location='cpu')
-        #     msg = model.load_state_dict(checkpoint, strict=False)
-        #     print(f'Message in model loading: {msg}')
 
         feature_extractor, model = load_vitmae_from_from_pretrained_w_weights(architecture, chkpt_path, False, True, output_channels)
+
+        set_dropout_rate(model, dropout_rate)
+
+        if "lin_probing" in model_type: # If we are doing Linear Probing, we are freezing everything but the final, classification layer
+            print('We are applying Linear Probing. The following parameters will not be frozen:')
+            for name, param in model.named_parameters():
+                if 'classifier' not in name:  # Freeze all layers except the classifier (final linear layer)
+                    param.requires_grad = False
+                else:
+                    print(name, param)
+
+    elif 'dinov2' in architecture: # Chris added
+
+        feature_extractor, model = load_dinov2_from_pretrained_w_weights_change_classification_head(architecture, chkpt_path, output_channels)
 
         set_dropout_rate(model, dropout_rate)
 

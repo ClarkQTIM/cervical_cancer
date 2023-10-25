@@ -127,3 +127,8 @@ python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predi
 
 We then ran the inference on test2 with:
 python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/vitmae_huge_from_scratch_finetuned_on_full_dataset_inference_test2 -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/cervical_cancer/csvs/model_36_split_df_test2_gt.csv -ic MASKED_IMG_ID -lc CC_ST -n 3 -test
+
+10/25:
+We are going to try this with a DINOv2 model with the "facebook/dinov2-giant-imagenet1k-1-layer" architecture.
+We are going to use the following command:
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/dinov2_classifier_downstream -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/cervical_cancer/csvs/full_dataset_duke_liger_split_df.csv -ic MASKED_IMG_ID -lc CC_ST -n 3 -mp

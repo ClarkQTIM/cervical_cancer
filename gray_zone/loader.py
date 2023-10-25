@@ -198,9 +198,9 @@ def split_dataset(output_path: str,
                   data_origin: str):
     """Load csv file containing metadata (image filenames, labels, patient ids, and val/train/test split)"""
     if data_origin == "None":
-        split_df_path = os.path.join(output_path, "split_df.csv")
+        split_df_path = os.path.join(output_path, "split_df_orig.csv")
     else:
-        split_df_path = os.path.join(output_path, "split_df_"+data_origin+".csv")
+        split_df_path = os.path.join(output_path, "split_df_"+data_origin+"_training.csv")
 
     # If output_path / "split_df.csv" exists use the already split csv
     if os.path.isfile(split_df_path):

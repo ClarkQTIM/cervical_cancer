@@ -54,11 +54,17 @@ def train(model: [torch.Tensor],
         step = 0
         for batch_data in tqdm(train_loader):
             step += 1
-            try:
-                inputs, labels = batch_data[0].to(device), batch_data[1].to(device)
-            except:
-                inputs = batch_data[0]['pixel_values'][0].to(device)
-                labels = batch_data[1].to(device)
+
+            inputs, labels = batch_data[0].to(device), batch_data[1].to(device)
+
+            '''
+            Test this and if it works, delete the try/except:
+            '''
+            # try:
+            #     inputs, labels = batch_data[0].to(device), batch_data[1].to(device)
+            # except:
+            #     inputs = batch_data[0]['pixel_values'][0].to(device)
+            #     labels = batch_data[1].to(device)
 
             optimizer.zero_grad()
             outputs = model(inputs)
@@ -85,14 +91,22 @@ def train(model: [torch.Tensor],
             step = 0
             for val_data in tqdm(val_loader):
                 step += 1
-                try:
-                    val_images, val_labels = (
+
+                val_images, val_labels = (
                         val_data[0].to(device),
                         val_data[1].to(device),
                     )
-                except:
-                    val_images = val_data[0]['pixel_values'][0].to(device)
-                    val_labels = val_data[1].to(device)
+                '''
+                Test this and if it works, delete the try/except:
+                '''
+                # try:
+                #     val_images, val_labels = (
+                #         val_data[0].to(device),
+                #         val_data[1].to(device),
+                #     )
+                # except:
+                #     val_images = val_data[0]['pixel_values'][0].to(device)
+                #     val_labels = val_data[1].to(device)
 
                 outputs = model(val_images)
                 

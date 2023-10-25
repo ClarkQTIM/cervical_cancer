@@ -32,14 +32,23 @@ def evaluate_model(model: torch.nn.Module,
 
     with torch.no_grad():
         for batch_idx, test_data in enumerate(tqdm(loader)):
-            try:
-                test_images, test_labels = (
+                            
+            test_images, test_labels = (
                     test_data[0].to(device),
                     test_data[1].to(device),
                 )
-            except:
-                    test_images = test_data[0]['pixel_values'][0].to(device)
-                    test_labels = test_data[1].to(device)
+
+            '''
+            Test this and if it works, delete the try/except:
+            '''
+            # try:
+            #     test_images, test_labels = (
+            #         test_data[0].to(device),
+            #         test_data[1].to(device),
+            #     )
+            # except:
+            #         test_images = test_data[0]['pixel_values'][0].to(device)
+            #         test_labels = test_data[1].to(device)
 
             pred_prob = act(model(test_images)['logits']).detach().cpu().numpy().tolist()
             test_labels = test_labels.detach().cpu().numpy()

@@ -10,7 +10,7 @@
     "kappa_coeff": null,
     "batch_size": 8,
     "lr": 1e-05,
-    "n_epochs": 75,
+    "n_epochs": 100,
     "device": "cuda:1",
     "val_metric": "custom_cervix",
     "dropout_rate": 0.1,

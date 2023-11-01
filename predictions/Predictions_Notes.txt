@@ -132,3 +132,32 @@ python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predi
 We are going to try this with a DINOv2 model with the "facebook/dinov2-giant-imagenet1k-1-layer" architecture.
 We are going to use the following command:
 python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/dinov2_classifier_downstream -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/cervical_cancer/csvs/full_dataset_duke_liger_split_df.csv -ic MASKED_IMG_ID -lc CC_ST -n 3 -mp
+
+10/26: 
+We are going to run inference on test2 with the dinvo2 using this command:
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/dinov2_classifier_inference_test2 -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/cervical_cancer/csvs/model_36_split_df_test2_gt.csv -ic MASKED_IMG_ID -lc CC_ST -n 3 -mp -test
+
+We are going to run a series of partial trainings using the following as a template:
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/vitmae_finetuned_partial_training_model_36_0_3 -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/cervical_cancer/csvs/partial_trainings/model_36_split_df_0_3.csv -ic MASKED_IMG_ID -lc CC_ST -n 3 -mp
+and:
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/vitmae_finetuned_partial_training_split_df_47_ii_add_26 -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/cervical_cancer/csvs/partial_trainings/split_df_47_ii_add_26.csv -ic MASKED_IMG_ID -lc DC_label -n 3 -mp
+Note that for csvs that start with model_36:
+
+-ic MASKED_IMG_ID -lc CC_ST
+
+for csvs that start with split_df:
+
+-ic MASKED_IMG_ID -lc DC_label
+
+I am doing 100 epochs on each. 
+
+10/30: 
+Up to now, we have only the TRAINING on vitmae_finetuned_partial_training_model_36_0_3 and vitmae_finetuned_partial_training_model_36_0_5.
+So, we need to run inference on them and more training.
+
+10/30:
+Issues with DINOv2. We are going to figure out what is going on.
+
+10/31:
+We are running inference of test2 on vitmae_finetuned_partial_training_model_36_0_3 and vitmae_finetuned_partial_training_model_36_0_5 using the following commands:
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/vitmae_finetuned_partial_training_model_36_0_5_inference_test2 -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/cervical_cancer/csvs/partial_trainings/model_36_split_df_0_3.csv -ic MASKED_IMG_ID -lc CC_ST -n 3 -mp -test

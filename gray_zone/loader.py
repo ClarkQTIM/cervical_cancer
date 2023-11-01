@@ -8,7 +8,7 @@ import torch
 import matplotlib.image as mpimg
 from monai.transforms import Compose, NormalizeIntensity, ScaleIntensity, Resize
 from sklearn.model_selection import train_test_split
-from transformers import ViTFeatureExtractor
+from transformers import ViTFeatureExtractor, AutoImageProcessor
 
 def transform_dataset(dataset, transformation): # Chris added
 
@@ -19,7 +19,12 @@ def transform_dataset(dataset, transformation): # Chris added
 def modify_transforms_feat_extractor(transforms, feat_extractor):
 
     image_mean, image_std = feat_extractor.image_mean, feat_extractor.image_std
-    size = feat_extractor.size["height"]
+
+    try: # Issue, some feature extractors have different names for things, so this just checks it
+        size = feat_extractor.size["height"]
+    except:
+        size = feat_extractor.crop_size["height"]
+
     normalize = NormalizeIntensity(subtrahend=image_mean, divisor=image_std, channel_wise=True)
     resize = Resize(spatial_size=(size, size))
 
@@ -125,6 +130,9 @@ def loader(architecture: str, # Chris added
     if 'vit' in architecture: 
         print('We are using a pre-made feature extractor!')
         feature_extractor = ViTFeatureExtractor.from_pretrained(architecture)
+    elif 'dinov2' in architecture:
+        print('We are using a pre-made feature extractor!')
+        feature_extractor = AutoImageProcessor.from_pretrained(architecture)
 
     # Load metadata and create val/train/test split if not already done
     split_df = split_dataset(output_path, train_frac=train_frac, test_frac=test_frac,

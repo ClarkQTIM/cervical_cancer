@@ -4,7 +4,12 @@ SRA_cambodia and SRA_dr are the Cambodia and Dominican Republic dataset with bou
 model_36_split_df_all_gt_test_2.csv is the same as model_36_split_df_all_gt.csv but with only "test_2" testing data renamed to test. As in,
 we took model_36_split_df_all_gt.csv and removed any "test" rows and renamed "test_2" to "test" for use in inference. This is done in /mnt/src/csv_creation.py
 
+10/26:
+The folder partial_trainings has the csvs used for partial training.
+
 Data Directories:
 full_dataset_duke_liger_itoju_5StLowQual has *all* the images the original model was trained on.
 SRA_IRIS_Cambodia and SRA_IRIS_DR are the Cambodia and Dominican Republic images respectively.
 
+10/26: 
+We moved J8 directly INTO full_dataset_duke_liger_itoju_5StLowQual for a round of trainings.

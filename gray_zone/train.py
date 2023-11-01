@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import label_binarize
 import json
-import json
+import sys
 
 from gray_zone.loader import Dataset
 from gray_zone.utils import get_label, get_validation_metric, modify_label_outputs_for_model_type
@@ -56,6 +56,7 @@ def train(model: [torch.Tensor],
             step += 1
 
             inputs, labels = batch_data[0].to(device), batch_data[1].to(device)
+            # print(inputs.shape, labels.shape)
 
             '''
             Test this and if it works, delete the try/except:
@@ -68,11 +69,16 @@ def train(model: [torch.Tensor],
 
             optimizer.zero_grad()
             outputs = model(inputs)
+            # print(f'Model outputs: {outputs}')
             try:
                 outputs, labels = modify_label_outputs_for_model_type(model_type, outputs['logits'], labels, act, n_class)
             except:
                 outputs, labels = modify_label_outputs_for_model_type(model_type, outputs, labels, act, n_class)
+            # print(f'Modify_label_outputs_for_outputs_for_model_type outputs and labels: {outputs, labels}')
             loss = loss_function(outputs, labels)
+            # print(f'Loss on batch {loss}')
+            # sys.exit()
+            # print(f'Loss on training batch {loss}')
             loss.backward()
             optimizer.step()
 

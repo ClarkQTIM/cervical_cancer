@@ -1,0 +1,10 @@
+Run the 'finetuned' version of vitMAE for each of these csvs, with 100 epochs of training; also run inference on 'test2'. This should be a total of 6 training runs (6 new csvs for the 'finetuned' vitMAE) and 6 inferences on 'test2'.
+
+for csvs that start with model_36:
+
+-ic MASKED_IMG_ID -lc CC_ST
+
+for csvs that start with split_df:
+
+-ic MASKED_IMG_ID -lc DC_label
+ some of the images for these are in the J8_detector subfolder which you have. For these images the "MASKED_IMG_ID" has the label in the form "J8_detector/[img].jpg". As long as you have the J8_detector folder in your datapath, this should be fine.

@@ -7,6 +7,7 @@ import torch.nn as nn
 from transformers import ViTFeatureExtractor, ViTMAEForPreTraining, ViTForImageClassification, Dinov2ForImageClassification, AutoImageProcessor
 from gray_zone.models import dropout_resnet, resnest, vit, vgg
 from gray_zone.models.coral import CoralLayer
+import collections
 
 # Custom dropout modifier for the ViTMAE
 def set_dropout_rate(model, new_dropout_rate): # Chris added
@@ -65,6 +66,48 @@ def load_dinov2_from_pretrained_w_weights_change_classification_head(from_pretra
 
     return feature_extractor, model
 
+def load_dinov1_from_pretrained_w_weights_change_classification_head(from_pretrained_model_path, weights_path, classes):
+
+    feature_extractor = AutoImageProcessor.from_pretrained('facebook/vit-mae-base') # Hardcoded here so we get ImageNet features
+
+    if weights_path == 'None':
+        print('We are loading in a pre-trained DINOv1 foundational model and adding the classification head.')
+        model = torch.hub.load('facebookresearch/dino:main', from_pretrained_model_path)
+        # Replacing the 'Identity()' head with a classifier head
+        linear_classifier = nn.Sequential(
+            nn.Linear(2048, classes)
+            )
+
+        model.fc = linear_classifier
+
+    elif weights_path != 'None':
+        print('We are loading in a pre-trained DINOv1 foundational model and adding the classification head. We are then switching foundational weights to something already trained.')
+        model = torch.hub.load('facebookresearch/dino:main', from_pretrained_model_path)
+        checkpoint = torch.load(weights_path, map_location='cpu')
+
+        # Getting the student information from the checkpoint
+        student_state_dict = checkpoint['student']  # The fine-tuning script saves several things, so we want only the student
+        backbone_finetuned_state_dict = collections.OrderedDict() # We need to run through the 
+
+        # Iterate through the items in student_state_dict and select keys starting with 'module.backbone'
+        for key, value in student_state_dict.items():
+            if key.startswith('module.backbone.'): # Getting only the module.backbone keys, as those will match with the un-fine-tuned model
+                # Remove the 'module.backbone.' prefix to get the corresponding key in the backbone
+                new_key = key[len('module.backbone.'):]
+                backbone_finetuned_state_dict[new_key] = value
+
+        msg = model.load_state_dict(backbone_finetuned_state_dict, strict=False)
+        print(f'Loading checkpoint weights for pretrained message: {msg}')
+        # Replacing the 'Identity()' head with a classifier head
+
+        linear_classifier = nn.Sequential(
+            nn.Linear(2048, classes)
+            )
+
+        model.fc = linear_classifier
+
+    return feature_extractor, model
+
 def get_model(architecture: str,
               model_type: str,
               chkpt_path: str, # Chris added chkpt_path
@@ -76,7 +119,22 @@ def get_model(architecture: str,
     """ Init model """
     feature_extractor = None
     output_channels, act = get_model_type_params(model_type, n_class)
-    if 'resnet' in architecture:
+
+    if 'dino_' in architecture: # Chris added
+
+        feature_extractor, model = load_dinov1_from_pretrained_w_weights_change_classification_head(architecture, chkpt_path, output_channels)
+
+        set_dropout_rate(model, dropout_rate)
+
+        if "lin_probing" in model_type: # If we are doing Linear Probing, we are freezing everything but the final, classification layer
+            print('We are applying Linear Probing. The following parameters will not be frozen:')
+            for name, param in model.named_parameters():
+                if 'classifier' not in name:  # Freeze all layers except the classifier (final linear layer)
+                    param.requires_grad = False
+                else:
+                    print(name, param)
+                    
+    elif 'resnet' in architecture:
         resnet = getattr(dropout_resnet, architecture) if float(dropout_rate) > 0 else getattr(torchvision.models,
                                                                                                architecture)
         model = resnet(pretrained=True)

@@ -161,3 +161,33 @@ Issues with DINOv2. We are going to figure out what is going on.
 10/31:
 We are running inference of test2 on vitmae_finetuned_partial_training_model_36_0_3 and vitmae_finetuned_partial_training_model_36_0_5 using the following commands:
 python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/vitmae_finetuned_partial_training_model_36_0_5_inference_test2 -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/cervical_cancer/csvs/partial_trainings/model_36_split_df_0_3.csv -ic MASKED_IMG_ID -lc CC_ST -n 3 -mp -test
+
+11/1: Note, to make the DINO dataloading work, we had to remove the J8 from the full_dataset_duke_liger_itoju_5StLowQual and then put full_dataset_duke_liger_itoju_5StLowQual
+inside another folder, full_dataset. So, we now need to change -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual to -d /mnt/data/full_dataset/full_dataset_duke_liger_itoju_5StLowQual
+and maybe add J8 back if we need to.
+
+11/1:
+We are going to begin training on the DINOv1 unfinetuned (while the fine-tuning is going on)
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/dinov1_resnet50_unfinetuned_downstream -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/cervical_cancer/csvs/full_dataset_duke_liger_split_df.csv -ic MASKED_IMG_ID -lc CC_ST -n 3 -mp
+
+We are going to redo the DINOv2 training with 1e-07 learning rate with this command:
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/dinov2_classifier_downstream_v2 -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/cervical_cancer/csvs/full_dataset_duke_liger_split_df.csv -ic MASKED_IMG_ID -lc CC_ST -n 3 -mp
+
+11/2:
+So, the evaluation.py had a line incompatible with dino, which we fixed, and we only ran it for 75 epochs. So, we are going to continue
+our training. This means just running the same thing, but giving the chkpt_path as the LAST (not the best) checkpoint from the first training.
+This is /mnt/cervical_cancer/predictions/dinov1_resnet50_unfinetuned_downstream/checkpoints/checkpoint74.pth
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/dinov1_resnet50_unfinetuned_downstream_cont -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/cervical_cancer/csvs/full_dataset_duke_liger_split_df.csv -ic MASKED_IMG_ID -lc CC_ST -n 3 -mp
+
+11/2:
+We cleaned up and combined our dinov1 and dinov1_cont so there is only one directory for it.
+Now, we are going to run inference on dinov1_unfinetuned and dinov2 with:
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/dinov1_resnet50_unfinetuned_inference_test2 -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/cervical_cancer/csvs/model_36_split_df_test2_gt.csv -ic MASKED_IMG_ID -lc CC_ST -n 3 -mp -test
+
+11/3:
+We finished fine-tuning the resnet50 with the DINO method. It is called dino_resnet50_finetuned_full_dataset_duke_liger_itoju_5StLowQual.pth We are going to run training on it with:
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/dinov1_resnet50_finetuned_downstream -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/cervical_cancer/csvs/full_dataset_duke_liger_split_df.csv -ic MASKED_IMG_ID -lc CC_ST -n 3 -mp
+
+11/6: 
+We reran the above, as we lost access to the gpus. After, we are going to run inference on the finetuned DINOv1 with:
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/dinov1_resnet50_finetuned_inference_test2 -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/cervical_cancer/csvs/model_36_split_df_test2_gt.csv -ic MASKED_IMG_ID -lc CC_ST -n 3 -mp -test

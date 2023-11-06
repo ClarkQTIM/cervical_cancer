@@ -16,7 +16,7 @@ def transform_dataset(dataset, transformation): # Chris added
 
     return prepared_ds
 
-def modify_transforms_feat_extractor(transforms, feat_extractor):
+def modify_transforms_feat_extractor(transforms, feat_extractor): # Chris added
 
     image_mean, image_std = feat_extractor.image_mean, feat_extractor.image_std
 

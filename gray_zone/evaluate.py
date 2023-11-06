@@ -50,7 +50,11 @@ def evaluate_model(model: torch.nn.Module,
             #         test_images = test_data[0]['pixel_values'][0].to(device)
             #         test_labels = test_data[1].to(device)
 
-            pred_prob = act(model(test_images)['logits']).detach().cpu().numpy().tolist()
+            try: # Some models might not output a dictionary with 'logits', but just the logits themselves, so we need to take that into account
+                pred_prob = act(model(test_images)['logits']).detach().cpu().numpy().tolist()
+            except:
+                pred_prob = act(model(test_images)).detach().cpu().numpy().tolist()
+
             test_labels = test_labels.detach().cpu().numpy()
 
             for i in range(len(pred_prob)):

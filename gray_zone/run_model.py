@@ -45,6 +45,7 @@ def _run_model(output_path: str,
     # Save configuration file in output directory
     param_dict = json.load(open(param_path, 'r'))
     df = pd.read_csv(csv_path)
+    print(df.head())
     print(f'Original df length {len(df)}')
     if param_dict['data_origin'] != "None":
         df = df[df['STUDY'] == param_dict['data_origin']]

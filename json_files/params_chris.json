@@ -1,6 +1,6 @@
 {
-    "architecture": "dino_resnet50",
-    "chkpt_path": "/mnt/models/dino_resnet50_finetuned_full_dataset_duke_liger_itoju_5StLowQual.pth",
+    "architecture": "facebook/vit-mae-huge",
+    "chkpt_path": "None",
     "model_type": "classification",
     "data_origin": "None",
     "loss": "qwk",
@@ -11,7 +11,7 @@
     "batch_size": 8,
     "lr": 1e-05,
     "n_epochs": 100,
-    "device": "cuda:0",
+    "device": "cuda:1",
     "val_metric": "custom_cervix",
     "dropout_rate": 0.1,
     "is_weighted_loss": false,

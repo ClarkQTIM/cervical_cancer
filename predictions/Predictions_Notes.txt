@@ -161,6 +161,8 @@ Issues with DINOv2. We are going to figure out what is going on.
 10/31:
 We are running inference of test2 on vitmae_finetuned_partial_training_model_36_0_3 and vitmae_finetuned_partial_training_model_36_0_5 using the following commands:
 python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/vitmae_finetuned_partial_training_model_36_0_5_inference_test2 -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/cervical_cancer/csvs/partial_trainings/model_36_split_df_0_3.csv -ic MASKED_IMG_ID -lc CC_ST -n 3 -mp -test
+**11/7: This was not correct. I didn't change the csv so it did not do test2, but the same val and test from what it was trained on.
+
 
 11/1: Note, to make the DINO dataloading work, we had to remove the J8 from the full_dataset_duke_liger_itoju_5StLowQual and then put full_dataset_duke_liger_itoju_5StLowQual
 inside another folder, full_dataset. So, we now need to change -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual to -d /mnt/data/full_dataset/full_dataset_duke_liger_itoju_5StLowQual
@@ -191,3 +193,27 @@ python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predi
 11/6: 
 We reran the above, as we lost access to the gpus. After, we are going to run inference on the finetuned DINOv1 with:
 python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/dinov1_resnet50_finetuned_inference_test2 -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/cervical_cancer/csvs/model_36_split_df_test2_gt.csv -ic MASKED_IMG_ID -lc CC_ST -n 3 -mp -test
+
+We are going back to the partial trainings with:
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/vitmae_finetuned_partial_training_split_df_47_ii_add_26 -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/cervical_cancer/csvs/partial_trainings/split_df_47_ii_add_26.csv -ic MASKED_IMG_ID -lc DC_label -n 3 -mp
+
+Issue! It looks like the DINOv1 has strange validation predictions. Why? Does it have to do with the fact that I put all the data in full_dataset?
+No, it doesn't. The only difference as that I had to change -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual to -d /mnt/data/full_dataset/full_dataset_duke_liger_itoju_5StLowQual
+
+At 14:15, I removed the two datasets from full_dataset, so I am using -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual
+
+We reran inference on test1 and validation for dinov2 with:
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/dinov2_classifier_inference_test1 -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/cervical_cancer/csvs/full_dataset_duke_liger_split_df.csv -ic MASKED_IMG_ID -lc CC_ST -n 3 -mp -test
+
+11/7:
+We discovered an error with inference on test2 with the model_36_0_5 and model_36_0_3. We had not changed the -c flag, so it did not run inference on test2, but on val and test1. Rerunning with:
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/vitmae_finetuned_partial_training_model_36_0_5_inference_test2 -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/cervical_cancer/csvs/model_36_split_df_test2_gt.csv -ic MASKED_IMG_ID -lc CC_ST -n 3 -mp -test
+
+11/8:
+We had to kill vitmae_finetuned_partial_training_split_df_52_ii_add_13 while it was evaluating. So, re-evaluate that one.
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/vitmae_finetuned_partial_training_split_df_52_ii_add_13_inference_test1 -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/cervical_cancer/csvs/partial_trainings/split_df_52_ii_add_13.csv -ic MASKED_IMG_ID -lc DC_label -n 3 -mp -test
+
+We are going to rerun 
+9:28
+We still haven't will run this after evaluation on vitmae_finetuned_partial_training_split_df_52_ii_add_13_inference_test1 is done!
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/vitmae_finetuned_partial_training_model_36_0_3_inference_test2 -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/cervical_cancer/csvs/model_36_split_df_test2_gt.csv -ic MASKED_IMG_ID -lc CC_ST -n 3 -mp -test

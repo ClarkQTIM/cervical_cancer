@@ -212,8 +212,11 @@ python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predi
 11/8:
 We had to kill vitmae_finetuned_partial_training_split_df_52_ii_add_13 while it was evaluating. So, re-evaluate that one.
 python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/vitmae_finetuned_partial_training_split_df_52_ii_add_13_inference_test1 -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/cervical_cancer/csvs/partial_trainings/split_df_52_ii_add_13.csv -ic MASKED_IMG_ID -lc DC_label -n 3 -mp -test
-
-We are going to rerun 
-9:28
-We still haven't will run this after evaluation on vitmae_finetuned_partial_training_split_df_52_ii_add_13_inference_test1 is done!
 python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/vitmae_finetuned_partial_training_model_36_0_3_inference_test2 -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/cervical_cancer/csvs/model_36_split_df_test2_gt.csv -ic MASKED_IMG_ID -lc CC_ST -n 3 -mp -test
+Then:
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/vitmae_finetuned_partial_training_split_df_52_ii_add_13_inference_test2 -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/cervical_cancer/csvs/model_36_split_df_test2_gt.csv -ic MASKED_IMG_ID -lc CC_ST -n 3 -mp -test
+
+So, we have done:
+split_df_47_ii_add_26, split_df_52_ii_add_13, model_36_0_3, and model_36_0_5.
+
+We need to do split_df_47_ii_add_13 training and inference_test2 and split_df_oob training and inferences on test2

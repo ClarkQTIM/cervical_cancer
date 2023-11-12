@@ -219,4 +219,28 @@ python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predi
 So, we have done:
 split_df_47_ii_add_26, split_df_52_ii_add_13, model_36_0_3, and model_36_0_5.
 
-We need to do split_df_47_ii_add_13 training and inference_test2 and split_df_oob training and inferences on test2
+We need to do split_df_56_ii_add_70 training and inference_test2 and split_df_oob and inference on test2
+split_df_oob_inf is INFERENCE ONLY with finetuned ViTMAE!
+
+11/9:
+Go through and reorganize a bit. There's too many experiments and you're getting mixed up!
+Go through and check EVERY experiment so that we are certain it was done correctly. 
+We are going to rerun the dinov1_resnet50_finetuned_downstream with 1e-07.
+If it is better, run generalizations with DINOv1-ResNet50 with 1e-07. If not, do the other.
+
+Running through all the experiments to see what needs to be redone.
+full_dataset_inference_test2_vitmae_huge_finetuned_300_final_epoch has in params the fine-tuned model (which should be None) and NO -test flag. I should rerun this.
+full_dataset_training_vitmae_huge_finetuned_metrics has None in the checkpoint path. It should be Facebook_Huge_Cervix_Custom_Finetune_v2_Cont_best_epoch.pth. Rerun this
+full_dataset_training_vitmae_huge_unfinetuned_300 has "/mnt/models/Facebook_Huge_Cervix_Custom_Finetune_v2_Cont_best_epoch.pth" in the checkpoint. Should be None. Rerun this.
+
+11/10:
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/vitmae/generalizability_runs/training/vitmae_finetuned_partial_training_split_df_56_ii_add_70 -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/cervical_cancer/csvs/partial_trainings/split_df_56_ii_add_70.csv -ic MASKED_IMG_ID -lc DC_label -n 3 -mp
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/vitmae/generalizability_runs/inference/vitmae_finetuned_partial_training_split_df_oob_inf -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/cervical_cancer/csvs/partial_trainings/split_df_oob_inf.csv -ic MASKED_IMG_ID -lc DC_label -n 3 -mp -test
+
+
+We are going to run dinov1 finetuned with 1e-07 learning rate
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/dinov1_resnet50_finetuned_downstream_1e07 -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/cervical_cancer/csvs/full_dataset_duke_liger_split_df.csv -ic MASKED_IMG_ID -lc CC_ST -n 3 -mp
+Done!
+
+11/11:
+python /mnt/cervical_cancer/gray_zone/run_model.py -o /mnt/cervical_cancer/predictions/vitmae/generalizability_runs/inference/vitmae_finetuned_partial_training_split_df_56_ii_add_70_inference_test2 -p /mnt/cervical_cancer/json_files/params_chris.json -d /mnt/data/full_dataset_duke_liger_itoju_5StLowQual -c /mnt/cervical_cancer/csvs/model_36_split_df_test2_gt.csv -ic MASKED_IMG_ID -lc CC_ST -n 3 -mp -test

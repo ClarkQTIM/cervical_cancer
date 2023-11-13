@@ -1,4 +1,4 @@
-Run the 'finetuned' version of vitMAE for each of these csvs, with 100 epochs of training; also run inference on 'test2'. This should be a total of 6 training runs (6 new csvs for the 'finetuned' vitMAE) and 6 inferences on 'test2'.
+Run the 'finetuned' version of vitMAE for each of these csvs, with 100 epochs of training; also run inference on 'test2'. This should be a total of 5 training runs (5 new csvs for the 'finetuned' vitMAE) and 6 inferences on 'test2'.
 
 for csvs that start with model_36:
 

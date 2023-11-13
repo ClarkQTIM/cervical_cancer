@@ -52,6 +52,10 @@ def create_time_point_pairs(patient_directory, path_to_save):
     # Remove the last row for each patient as it has no next image path
     df = df.dropna()
 
+    # Remove '/sddata/' from the beginning of each path
+    df['Image_Path'] = df['Image_Path'].str.replace('^/sddata/', '', regex=True)
+    df['Next_Image_Path'] = df['Next_Image_Path'].str.replace('^/sddata/', '', regex=True)
+
     # Save the DataFrame to a CSV file
     df = df[['Image_Path', 'Next_Image_Path']]
     df.to_csv(path_to_save, index=False)
@@ -66,4 +70,4 @@ if __name__ == "__main__":
 
     # csv_path = '/mnt/data/model_36_split_df_all_gt.csv'
     # remove_data_split_rename(csv_path, 'test', 'test2', 'test', 'model_36_split_df_test_2_gt.csv', '/mnt/data')
-    create_time_point_pairs('/sddata/projects/Cervical_Cancer_Projects/data/IRIS_cambodia', '/sddata/projects/Cervical_Cancer_Projects/cervical_cancer/csvs/IRIS_cambodia_timepoint_pairs.csv')
+    create_time_point_pairs('/sddata/projects/Cervical_Cancer_Projects/data/IRIS_DR', '/sddata/projects/Cervical_Cancer_Projects/cervical_cancer/csvs/IRIS_DR_timepoint_pairs.csv')

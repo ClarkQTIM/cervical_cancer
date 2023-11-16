@@ -1,6 +1,6 @@
 {
     "architecture": "dino_resnet50",
-    "chkpt_path": "/mnt/models/dino_resnet50_finetuned_full_dataset_duke_liger_itoju_5StLowQual.pth",
+    "chkpt_path": "None",
     "model_type": "classification",
     "data_origin": "None",
     "loss": "qwk",
@@ -19,6 +19,7 @@
     "seed": 0,
     "train_frac": 0.65,
     "test_frac": 0.25,
+    "custom_norms": null,
     "train_transforms": {
         "Transpose": {
             "indices": [

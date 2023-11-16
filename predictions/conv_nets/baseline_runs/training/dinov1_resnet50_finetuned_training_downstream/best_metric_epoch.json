@@ -1,5 +1,0 @@
-{
-    "best_val_metric": "custom_cervix",
-    "best_val_metric_value": 0.8211947313850736,
-    "epoch_at_best_metric": 30
-}

@@ -85,6 +85,7 @@ def _run_model(output_path: str,
                                                                              patient_colname=patient_colname,
                                                                              train_frac=param_dict['train_frac'],
                                                                              test_frac=param_dict['test_frac'],
+                                                                             custom_norms = param_dict['custom_norms'],
                                                                              seed=param_dict['seed'],
                                                                              batch_size=param_dict['batch_size'],
                                                                              balanced=is_balanced,
@@ -143,17 +144,18 @@ def _run_model(output_path: str,
                                                                                 patient_colname=patient_colname,
                                                                                 train_frac=param_dict['train_frac'],
                                                                                 test_frac=param_dict['test_frac'],
+                                                                                custom_norms = param_dict['custom_norms'],
                                                                                 seed=param_dict['seed'],
                                                                                 batch_size=param_dict['batch_size'],
                                                                                 balanced=is_balanced,
                                                                                 weights=weights,
                                                                                 data_origin="None") # Note, this is now "None", so we use ALL the data for evaluation
-        val_loader = get_unbalanced_loader(feature_extractor, val_df, data_path, param_dict['batch_size'], val_transforms,
+        val_loader = get_unbalanced_loader(feature_extractor, param_dict['custom_norms'], val_df, data_path, param_dict['batch_size'], val_transforms,
                                     label_colname, image_colname)
         
     else:
         print('\n', 'We did not subset the data by study for training, so we are NOT going to redo the data_loading.')
-        val_loader = get_unbalanced_loader(feature_extractor, val_df, data_path, param_dict['batch_size'], val_transforms,
+        val_loader = get_unbalanced_loader(feature_extractor, param_dict['custom_norms'], val_df, data_path, param_dict['batch_size'], val_transforms,
                                     label_colname, image_colname)
         
     for data_loader, data_df, suffix in zip([test_loader, val_loader], [test_df, val_df], ['', '_validation']):

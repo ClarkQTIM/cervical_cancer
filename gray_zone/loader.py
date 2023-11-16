@@ -16,14 +16,25 @@ def transform_dataset(dataset, transformation): # Chris added
 
     return prepared_ds
 
-def modify_transforms_feat_extractor(transforms, feat_extractor): # Chris added
+def modify_transforms_feat_extractor_custom_norms(transforms, feat_extractor, custom_norms): # Chris added
+    
+    if feat_extractor != None: # Getting the feature extractor means, stds, and sizes
+        image_mean, image_std = feat_extractor.image_mean, feat_extractor.image_std
 
-    image_mean, image_std = feat_extractor.image_mean, feat_extractor.image_std
+        try: # Issue, some feature extractors have different names for things, so this just checks it
+            size = feat_extractor.size["height"]
+        except:
+            size = feat_extractor.crop_size["height"]
 
-    try: # Issue, some feature extractors have different names for things, so this just checks it
-        size = feat_extractor.size["height"]
-    except:
-        size = feat_extractor.crop_size["height"]
+    '''
+    11/13: 
+    You shouldn't need custom_norms[0], so figure out why that is happening. Also, make sure that the feat_extractor can
+    be None and it won't cause issues. You haven't run into this because you have always used one, but make sure.
+    '''
+
+    if custom_norms[0] != None: # Changing the means and stds
+        image_mean = custom_norms[0]['means']
+        image_std = custom_norms[0]['stds']
 
     normalize = NormalizeIntensity(subtrahend=image_mean, divisor=image_std, channel_wise=True)
     resize = Resize(spatial_size=(size, size))
@@ -42,12 +53,14 @@ def modify_transforms_feat_extractor(transforms, feat_extractor): # Chris added
 class Dataset(torch.utils.data.Dataset):
     def __init__(self,
                 feature_extractor, # Chris added
-                 df: pd.DataFrame,
-                 data_path: str,
-                 transforms: Compose,
-                 label_colname: str,
-                 image_colname: str):
+                custom_norms,
+                df: pd.DataFrame,
+                data_path: str,
+                transforms: Compose,
+                label_colname: str,
+                image_colname: str):
         self.feature_extractor = feature_extractor # Chris added
+        self.custom_norms = custom_norms,
         self.df = df
         self.data_path = data_path
         self.transforms = transforms
@@ -77,19 +90,19 @@ class Dataset(torch.utils.data.Dataset):
                 idx_data = self.df.iloc[index]
                 img = img[int(idx_data['y1']): int(idx_data['y2']), int(idx_data['x1']): int(idx_data['x2']), :]
 
-                if self.feature_extractor: # If we have a feature extractor, we are going to change the transforms
-                    self.transforms = modify_transforms_feat_extractor(self.transforms, self.feature_extractor)
+                if self.feature_extractor or self.custom_norms: # If we have a feature extractor, we are going to change the transforms
+                    self.transforms = modify_transforms_feat_extractor_custom_norms(self.transforms, self.feature_extractor, self.custom_norms)
                     # Remove center crop if the bounding box is provided
                     self.transforms = Compose([tr for tr in list(self.transforms.transforms)
                                            if 'CenterSpatialCrop' not in str(tr)])
-                else: # No feature extractor
+                else: # No feature extractor and no custom_norms
                     # Remove center crop if the bounding box is provided
                     self.transforms = Compose([tr for tr in list(self.transforms.transforms)
                     if 'CenterSpatialCrop' not in str(tr)])
 
             else: # No bounding box
-                if self.feature_extractor: # If we have a feature extractor, we are going to change the transforms
-                    self.transforms = modify_transforms_feat_extractor(self.transforms, self.feature_extractor)
+                if self.feature_extractor or self.custom_norms: # If we have a feature extractor, we are going to change the transforms
+                    self.transforms = modify_transforms_feat_extractor_custom_norms(self.transforms, self.feature_extractor, self.custom_norms)
                 
         gt = self.df[self.label_name].iloc[index]
 
@@ -107,6 +120,7 @@ def loader(architecture: str, # Chris added
            metadata_path: str = None,
            train_frac: float = 0.65,
            test_frac: float = 0.25,
+           custom_norms = None,
            seed: int = 0,
            batch_size: int = 32,
            balanced: bool = False,
@@ -133,6 +147,12 @@ def loader(architecture: str, # Chris added
     elif 'dinov2' in architecture:
         print('We are using a pre-made feature extractor!')
         feature_extractor = AutoImageProcessor.from_pretrained(architecture)
+    elif 'dino_' in architecture:
+        print('We are using a pre-made feature extractor from facebook/vit-mae-base!')
+        feature_extractor = AutoImageProcessor.from_pretrained('facebook/vit-mae-base') # Hardcoded here so we get ImageNet features
+    
+    if custom_norms:
+        print(f'Custom normalization: {custom_norms}')
 
     # Load metadata and create val/train/test split if not already done
     split_df = split_dataset(output_path, train_frac=train_frac, test_frac=test_frac,
@@ -150,7 +170,7 @@ def loader(architecture: str, # Chris added
             sampler, weights = get_balanced_sampler(df_train, label_colname, weights)
         shuffle = not balanced
 
-        train_ds = Dataset(feature_extractor, df_train, data_path, train_transforms, label_colname, image_colname)
+        train_ds = Dataset(feature_extractor, custom_norms, df_train, data_path, train_transforms, label_colname, image_colname)
         train_loader = torch.utils.data.DataLoader(
             train_ds, batch_size=batch_size, shuffle=shuffle, num_workers=10, sampler=sampler if balanced else None)
         
@@ -161,7 +181,7 @@ def loader(architecture: str, # Chris added
             df_val = df_val[df_val['STUDY'] == data_origin]
         if balanced:
             sampler, _ = get_balanced_sampler(df_val, label_colname, weights)
-        val_ds = Dataset(feature_extractor, df_val, data_path, val_transforms, label_colname, image_colname)
+        val_ds = Dataset(feature_extractor, custom_norms, df_val, data_path, val_transforms, label_colname, image_colname)
         val_loader = torch.utils.data.DataLoader(
             val_ds, batch_size=batch_size, num_workers=10, sampler=sampler if balanced else None)
             
@@ -170,13 +190,13 @@ def loader(architecture: str, # Chris added
     if len(df_test):
         if data_origin != "None":
             df_test = df_test[df_test['STUDY'] == data_origin]
-        test_ds = Dataset(feature_extractor, df_test, data_path, val_transforms, label_colname, image_colname)
+        test_ds = Dataset(feature_extractor, custom_norms, df_test, data_path, val_transforms, label_colname, image_colname)
         test_loader = torch.utils.data.DataLoader(test_ds, batch_size=batch_size, num_workers=10)
 
     return train_loader, val_loader, test_loader, df_val, df_test, weights
 
-def get_unbalanced_loader(feature_extractor, df, data_path, batch_size, transforms, label_colname, image_colname):
-    ds = Dataset(feature_extractor, df, data_path, transforms, label_colname, image_colname)
+def get_unbalanced_loader(feature_extractor, custom_norms, df, data_path, batch_size, transforms, label_colname, image_colname):
+    ds = Dataset(feature_extractor, custom_norms, df, data_path, transforms, label_colname, image_colname)
     return torch.utils.data.DataLoader(ds, batch_size=batch_size, num_workers=10, sampler=None)
 
 

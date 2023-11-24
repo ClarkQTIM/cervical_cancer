@@ -1,0 +1,6 @@
+11/21:
+This is for DINOv1 UNFINETUNED on cervix data (just fine-tuned on ImageNet) and using model 36 downstream norms (ScaleIntensity and Resize 256)
+We are running all 5 trainings and 6 inferences.
+
+11/22:
+Done!

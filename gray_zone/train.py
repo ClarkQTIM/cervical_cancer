@@ -56,29 +56,15 @@ def train(model: [torch.Tensor],
             step += 1
 
             inputs, labels = batch_data[0].to(device), batch_data[1].to(device)
-            # print(inputs.shape, labels.shape)
-
-            '''
-            Test this and if it works, delete the try/except:
-            '''
-            # try:
-            #     inputs, labels = batch_data[0].to(device), batch_data[1].to(device)
-            # except:
-            #     inputs = batch_data[0]['pixel_values'][0].to(device)
-            #     labels = batch_data[1].to(device)
+            # print(f'Inputs shape: {inputs.shape}')
 
             optimizer.zero_grad()
             outputs = model(inputs)
-            # print(f'Model outputs: {outputs}')
             try:
                 outputs, labels = modify_label_outputs_for_model_type(model_type, outputs['logits'], labels, act, n_class)
             except:
                 outputs, labels = modify_label_outputs_for_model_type(model_type, outputs, labels, act, n_class)
-            # print(f'Modify_label_outputs_for_outputs_for_model_type outputs and labels: {outputs, labels}')
             loss = loss_function(outputs, labels)
-            # print(f'Loss on batch {loss}')
-            # sys.exit()
-            # print(f'Loss on training batch {loss}')
             loss.backward()
             optimizer.step()
 
@@ -102,17 +88,6 @@ def train(model: [torch.Tensor],
                         val_data[0].to(device),
                         val_data[1].to(device),
                     )
-                '''
-                Test this and if it works, delete the try/except:
-                '''
-                # try:
-                #     val_images, val_labels = (
-                #         val_data[0].to(device),
-                #         val_data[1].to(device),
-                #     )
-                # except:
-                #     val_images = val_data[0]['pixel_values'][0].to(device)
-                #     val_labels = val_data[1].to(device)
 
                 outputs = model(val_images)
                 

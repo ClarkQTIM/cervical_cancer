@@ -17,7 +17,7 @@ def transform_dataset(dataset, transformation): # Chris added
     return prepared_ds
 
 def modify_transforms_feat_extractor_custom_norms(transforms, feat_extractor, custom_norms): # Chris added
-    
+
     if feat_extractor != None: # Getting the feature extractor means, stds, and sizes
         image_mean, image_std = feat_extractor.image_mean, feat_extractor.image_std
 
@@ -90,7 +90,7 @@ class Dataset(torch.utils.data.Dataset):
                 idx_data = self.df.iloc[index]
                 img = img[int(idx_data['y1']): int(idx_data['y2']), int(idx_data['x1']): int(idx_data['x2']), :]
 
-                if self.feature_extractor or self.custom_norms: # If we have a feature extractor, we are going to change the transforms
+                if self.feature_extractor != None or self.custom_norms[0] != None: # If we have a feature extractor, we are going to change the transforms
                     self.transforms = modify_transforms_feat_extractor_custom_norms(self.transforms, self.feature_extractor, self.custom_norms)
                     # Remove center crop if the bounding box is provided
                     self.transforms = Compose([tr for tr in list(self.transforms.transforms)
@@ -101,7 +101,7 @@ class Dataset(torch.utils.data.Dataset):
                     if 'CenterSpatialCrop' not in str(tr)])
 
             else: # No bounding box
-                if self.feature_extractor or self.custom_norms: # If we have a feature extractor, we are going to change the transforms
+                if self.feature_extractor != None or self.custom_norms[0] != None: # If we have a feature extractor, we are going to change the transforms
                     self.transforms = modify_transforms_feat_extractor_custom_norms(self.transforms, self.feature_extractor, self.custom_norms)
                 
         gt = self.df[self.label_name].iloc[index]
@@ -151,6 +151,12 @@ def loader(architecture: str, # Chris added
         print('We are using a pre-made feature extractor from facebook/vit-mae-base!')
         feature_extractor = AutoImageProcessor.from_pretrained('facebook/vit-mae-base') # Hardcoded here so we get ImageNet features
     
+    # Removing the feature extractor if we want model_36 training augs/transformations
+    if 'no_fe' in architecture:
+        print('We are loading in a model, but we are NOT keeping the feature extractor. Defaulting to model_36 training augs/transformations.')
+        feature_extractor = None
+
+    # Loading in custom norms
     if custom_norms:
         print(f'Custom normalization: {custom_norms}')
 

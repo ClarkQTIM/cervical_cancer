@@ -1,0 +1,4 @@
+11/21:
+This folder is for DINOv1 finetuned on cervix data using ImageNet norms and then downstream trained using model 36 norms (just ScaleIntensity and Resizing 256).
+Training is done for model_36_0_3, 0_5, split_df_47 and 52, but we won't be pursuing this further.
+

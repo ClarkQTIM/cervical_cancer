@@ -68,6 +68,9 @@ def load_dinov2_from_pretrained_w_weights_change_classification_head(from_pretra
 
 def load_dinov1_from_pretrained_w_weights_change_classification_head(from_pretrained_model_path, weights_path, classes):
 
+    if 'no_fe' in from_pretrained_model_path:
+        from_pretrained_model_path = from_pretrained_model_path.split('no_fe_')[-1]
+        
     feature_extractor = AutoImageProcessor.from_pretrained('facebook/vit-mae-base') # Hardcoded here so we get ImageNet features
 
     if weights_path == 'None':
@@ -120,7 +123,7 @@ def get_model(architecture: str,
     feature_extractor = None
     output_channels, act = get_model_type_params(model_type, n_class)
 
-    if 'dino_' in architecture: # Chris added
+    if 'dino_' in architecture or 'no_fe_dino_' in architecture: # Chris added
 
         feature_extractor, model = load_dinov1_from_pretrained_w_weights_change_classification_head(architecture, chkpt_path, output_channels)
 

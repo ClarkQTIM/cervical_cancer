@@ -10,3 +10,4 @@ __pycache__
 *.log
 .python-version
 *.pth
+!/mnt/cervical_cancer/predictions/conv_nets_imagenet_norms_for_finetuning_and_model_36_downstream_norms/baseline_runs/training/dinov1_resnet50_unfinetuned_training_model_36_downstream_norms/best_metric_model.pth
